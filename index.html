@@ -1,0 +1,1533 @@
+<meta charset="utf-8">
+<title>AI Estimate Rehash — Breezy Prototype</title>
+<style>
+  :root{
+    --brand:#1677FF; --brand-hover:#4096FF; --brand-active:#0958D9; --brand-tint:#E6F4FF;
+    --text:#1F1F1F; --text-2:#595959; --text-3:#8C8C8C;
+    --bg:#FFFFFF; --sidebar:#FAFAFA; --muted:#F5F5F5; --muted-30:#FAFAFA;
+    --border:#EBEBEB; --border-2:#D9D9D9;
+    --green-bg:#ECFDF5; --green-fg:#065F46; --green-bd:#A7F3D0;
+    --amber-bg:#FEF3C7; --amber-fg:#92400E; --amber-bd:#FDE68A;
+    --red:#FF4D4F; --red-bg:#FFF1F0; --red-fg:#A8071A; --red-bd:#FFCCC7;
+    --radius:10px;
+    --shadow-sm:0 1px 2px rgba(0,0,0,.05);
+    --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  [hidden]{display:none!important}
+  html,body{height:100%}
+  body{font-family:var(--font);color:var(--text);background:#E9EDF2;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  button{font:inherit;cursor:pointer;background:none;border:none;color:inherit}
+  button:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:3px solid rgba(22,119,255,.5);outline-offset:1px;border-radius:6px}
+  svg{flex:none}
+  select,input[type=text],textarea{font:inherit;color:var(--text)}
+
+  .proto-note{max-width:1280px;margin:14px auto 0;padding:0 16px;display:flex;gap:10px;align-items:center;color:#5b6b7c;font-size:12px;flex-wrap:wrap}
+  .proto-note b{color:#33404f}
+  .frame{max-width:1280px;margin:10px auto 40px;background:var(--bg);border:1px solid #D7DEE6;border-radius:14px;overflow:hidden;box-shadow:0 8px 30px rgba(15,35,60,.10);display:flex;min-height:820px;position:relative}
+
+  /* ===== Sidebar ===== */
+  .sidebar{width:240px;flex:none;background:var(--sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column}
+  .brand{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border)}
+  .brand-icon{width:32px;height:32px;border-radius:8px;background:var(--brand);display:grid;place-items:center;color:#fff}
+  .brand-name{font-weight:600;font-size:15px;line-height:1.2}
+  .brand-sub{font-size:11px;color:var(--text-3)}
+  .nav{padding:10px 8px;display:flex;flex-direction:column;gap:2px;flex:1;overflow-y:auto}
+  .nav-group{padding:10px 10px 3px;font-size:10.5px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--text-3)}
+  .nav-item{display:flex;align-items:center;gap:10px;height:40px;padding:0 10px;border-radius:8px;color:var(--text-2);font-weight:500;font-size:13.5px;text-align:left;width:100%}
+  .nav-item:hover{background:#f0f0f0}
+  .nav-item.active{background:var(--brand-tint);color:var(--brand-active)}
+  .nav-item .ni{width:18px;height:18px}
+  .nav-sub{margin-left:28px;font-size:12px}
+  .nav-footer{padding:10px 8px;border-top:1px solid var(--border)}
+  .nav-new{font-size:10px;font-weight:600;background:var(--brand);color:#fff;border-radius:99px;padding:1px 7px;margin-left:auto;letter-spacing:.4px}
+
+  /* ===== Header / page ===== */
+  .main{flex:1;display:flex;flex-direction:column;min-width:0}
+  .topbar{height:56px;flex:none;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:12px}
+  .topbar .sep{width:1px;height:20px;background:var(--border-2)}
+  .crumb{font-size:13px;color:var(--text-3)}
+  .crumb b{color:var(--text);font-weight:500}
+  .tenant{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-2);border:1px solid var(--border);border-radius:99px;padding:4px 12px 4px 5px;background:#fff}
+  .avatar{width:24px;height:24px;border-radius:99px;background:linear-gradient(135deg,#1677FF,#13C2C2);color:#fff;display:grid;place-items:center;font-size:10.5px;font-weight:600}
+  .page{padding:28px 32px 40px;overflow-y:auto;flex:1}
+  .page-h{display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap}
+  .page-h h1{font-size:23px;font-weight:700;letter-spacing:-.01em}
+  .page-h p{color:var(--text-2);font-size:13.5px;margin-top:2px}
+  .page-h .actions{margin-left:auto;display:flex;gap:8px}
+
+  /* ===== Buttons / badges ===== */
+  .btn{display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 14px;border-radius:8px;font-size:13.5px;font-weight:500;border:1px solid transparent;transition:background .12s}
+  .btn-primary{background:var(--brand);color:#fff}
+  .btn-primary:hover{background:var(--brand-hover)}
+  .btn-outline{background:#fff;border-color:var(--border-2);box-shadow:var(--shadow-sm)}
+  .btn-outline:hover{background:var(--muted)}
+  .btn-ghost:hover{background:var(--muted)}
+  .btn-sm{height:30px;padding:0 10px;font-size:12.5px;border-radius:7px}
+  .icon-btn{display:inline-grid;place-items:center;width:32px;height:32px;border-radius:8px;border:1px solid var(--border-2);background:#fff;color:var(--text-2);box-shadow:var(--shadow-sm)}
+  .icon-btn:hover{background:var(--muted)}
+  .icon-btn.tiny{width:24px;height:24px;border-radius:6px;border-color:transparent;box-shadow:none;color:var(--text-3)}
+  .icon-btn.tiny:hover{background:var(--muted);color:var(--text)}
+  .badge{display:inline-flex;align-items:center;gap:5px;border-radius:99px;border:1px solid transparent;padding:1px 9px;font-size:11.5px;font-weight:500;white-space:nowrap}
+  .badge-blue{background:var(--brand-tint);color:var(--brand-active);border-color:#BAE0FF}
+  .badge-gray{background:var(--muted);color:var(--text-2);border-color:var(--border)}
+  .badge-outline{background:#fff;color:var(--text-2);border-color:var(--border-2)}
+  .badge-green{background:var(--green-bg);color:var(--green-fg);border-color:var(--green-bd)}
+  .badge-amber{background:var(--amber-bg);color:var(--amber-fg);border-color:var(--amber-bd)}
+  .badge-red{background:var(--red-bg);color:var(--red-fg);border-color:var(--red-bd)}
+  .dot{width:6px;height:6px;border-radius:99px;background:currentColor}
+
+  /* ===== Pill tabs (rehash section) ===== */
+  .tabs{display:flex;gap:2px;background:var(--muted);border-radius:9px;padding:3px;width:max-content;margin:22px 0 20px}
+  .tab{height:32px;padding:0 18px;border-radius:7px;font-size:13.5px;font-weight:500;color:var(--text-2)}
+  .tab.active{background:#fff;color:var(--text);box-shadow:var(--shadow-sm)}
+
+  /* ===== Underline tabs (production SR/Conversations pattern) ===== */
+  .utabs{display:flex;gap:0;border-bottom:1px solid var(--border);overflow-x:auto;margin-top:18px}
+  .utab{flex:none;padding:8px 12px;font-size:13px;font-weight:500;color:var(--text-2);border-bottom:2px solid transparent;display:flex;align-items:center;gap:6px}
+  .utab:hover{color:var(--text)}
+  .utab.active{color:var(--brand);border-color:var(--brand)}
+  .utab .cnt{background:var(--muted);border-radius:99px;padding:0 7px;font-size:11px;color:var(--text-2);font-variant-numeric:tabular-nums}
+
+  /* ===== Toolbar (search + filter + export) ===== */
+  .toolbar{display:flex;gap:8px;margin:14px 0 12px;align-items:center;flex-wrap:wrap}
+  .searchbox{position:relative;flex:1;min-width:0}
+  .searchbox input{width:100%;height:34px;padding:0 10px 0 32px;border:1px solid var(--border-2);border-radius:8px;font-size:13px;background:#fff}
+  .searchbox svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-3)}
+  .pop{position:relative}
+  .pop-menu{position:absolute;right:0;top:38px;background:#fff;border:1px solid var(--border);border-radius:10px;box-shadow:0 10px 30px rgba(15,23,42,.15);padding:14px;width:280px;z-index:30;display:none}
+  .pop-menu.open{display:block}
+  .pop-menu h5{font-size:13px;font-weight:600;margin-bottom:10px}
+  .pop-menu .grouplbl{font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3);margin:10px 0 6px}
+  .pop-menu label{display:flex;align-items:center;gap:8px;font-size:13px;padding:4px 0;cursor:pointer}
+  .pop-menu input{width:15px;height:15px;accent-color:var(--brand)}
+
+  /* ===== Cards / stats / tables ===== */
+  .card{background:#fff;border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow-sm)}
+  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .stat{padding:16px 18px}
+  .stat .lbl{font-size:12px;color:var(--text-2)}
+  .stat .val{font-size:26px;font-weight:700;letter-spacing:-.02em;margin-top:4px;font-variant-numeric:tabular-nums}
+  .stat .sub{font-size:11.5px;color:var(--text-3);margin-top:2px}
+  .stat .delta{color:var(--green-fg);font-weight:600}
+  .section-lbl{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);margin:26px 0 10px}
+  .tablewrap{border:1px solid var(--border);border-radius:10px;overflow-x:auto;background:#fff}
+  .tablewrap table{min-width:660px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  thead th{font-size:11.5px;font-weight:600;color:var(--text-3);text-align:left;padding:9px 14px;background:var(--muted-30);border-bottom:1px solid var(--border);letter-spacing:.02em;white-space:nowrap}
+  tbody td{padding:11px 14px;border-bottom:1px solid var(--border);vertical-align:middle}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr.rowbtn{cursor:pointer}
+  tbody tr.rowbtn:hover{background:var(--muted-30)}
+  .t-num{font-variant-numeric:tabular-nums}
+  .t-name{font-weight:500}
+  .t-muted{color:var(--text-3);font-size:12px}
+  .empty{padding:30px;text-align:center;color:var(--text-3);font-size:13px}
+  .pagefoot{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text-3);margin-top:10px}
+  .chip{display:inline-flex;align-items:center;gap:5px;background:var(--brand-tint);border:1px solid #BAE0FF;color:var(--brand-active);border-radius:7px;padding:2px 8px;font-size:11.5px;font-weight:500}
+  .freeze-note{font-size:11.5px;color:var(--amber-fg);background:var(--amber-bg);border:1px solid var(--amber-bd);border-radius:8px;padding:7px 10px}
+  .block-note{font-size:11.5px;color:var(--red-fg);background:var(--red-bg);border:1px solid var(--red-bd);border-radius:8px;padding:7px 10px}
+
+  /* ===== Drawers ===== */
+  .overlay{position:absolute;inset:0;background:rgba(15,23,42,.32);opacity:0;pointer-events:none;transition:opacity .18s;z-index:40}
+  .overlay.open{opacity:1;pointer-events:auto}
+  .drawer{position:absolute;top:0;right:0;bottom:0;width:min(600px,94%);background:#fff;border-left:1px solid var(--border);box-shadow:-12px 0 40px rgba(15,23,42,.12);transform:translateX(102%);transition:transform .22s ease;z-index:50;display:flex;flex-direction:column}
+  .drawer.open{transform:none}
+  @media (prefers-reduced-motion:reduce){.drawer,.overlay{transition:none}}
+  .drawer-h{padding:16px 22px 13px;border-bottom:1px solid var(--border);flex:none}
+  .drawer-h .ref{font-size:12px;color:var(--text-3);font-variant-numeric:tabular-nums;display:flex;align-items:center;gap:8px}
+  .drawer-h h2{font-size:18px;font-weight:700;margin:3px 0 8px}
+  .drawer-body{overflow-y:auto;padding:6px 22px 26px;flex:1}
+  .drawer-f{flex:none;border-top:1px solid var(--border);padding:13px 22px;display:flex;gap:9px;justify-content:flex-end;background:var(--muted-30)}
+  .dsec{padding:16px 0;border-bottom:1px solid var(--border)}
+  .dsec:last-child{border-bottom:none}
+  .dsec h4{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);margin-bottom:10px}
+  .dl{display:grid;grid-template-columns:130px 1fr;row-gap:7px;font-size:13px}
+  .dl dt{color:var(--text-3)}
+  .dl dd{font-weight:500}
+  .sumbox{background:var(--muted-30);border:1px solid var(--border);border-radius:8px;padding:11px 13px;font-size:13px;color:var(--text-2)}
+  .notif{border:1px solid #BAE0FF;background:var(--brand-tint);border-radius:10px;padding:12px 14px;font-size:12.5px}
+  .notif .nh{display:flex;align-items:center;gap:7px;font-weight:600;color:var(--brand-active);margin-bottom:6px;font-size:12px}
+  .notif .npv{background:#fff;border:1px solid #BAE0FF;border-radius:8px;padding:9px 11px;color:var(--text);line-height:1.55}
+  .chat{display:flex;flex-direction:column;gap:10px}
+  .msg{max-width:82%;padding:9px 13px;border-radius:14px;font-size:13px;line-height:1.5}
+  .msg.agent{align-self:flex-start;background:var(--muted);border:1px solid var(--border);border-bottom-left-radius:4px}
+  .msg.cust{align-self:flex-end;background:var(--brand);color:#fff;border-bottom-right-radius:4px}
+  .msg .mt{display:block;font-size:10.5px;margin-top:4px;opacity:.65}
+  .sysline{align-self:center;font-size:11px;color:var(--text-3);display:flex;align-items:center;gap:7px;padding:2px 0;text-align:center}
+  .sysline::before,.sysline::after{content:"";width:38px;height:1px;background:var(--border-2)}
+
+  /* ===== Segment drawer: rule builder ===== */
+  .hint{font-size:11.5px;color:var(--text-3);margin-top:5px}
+  .nameinput{width:100%;font-size:14px;font-weight:600;border:1px solid var(--border-2);border-radius:8px;padding:9px 12px}
+  .segmented{display:inline-flex;background:var(--muted);border-radius:8px;padding:3px;gap:2px}
+  .segmented button{height:26px;padding:0 12px;border-radius:6px;font-size:12px;font-weight:500;color:var(--text-2)}
+  .segmented button.on{background:#fff;color:var(--text);box-shadow:var(--shadow-sm)}
+  .rule{display:flex;align-items:center;gap:6px;padding:7px 0;flex-wrap:wrap}
+  .rule + .rule{border-top:1px dashed var(--border)}
+  .rule select{border:1px solid var(--border-2);border-radius:7px;padding:5px 7px;font-size:12.5px;background:#fff;max-width:100%}
+  .rule .conn{font-size:10px;font-weight:700;color:var(--text-3);letter-spacing:.06em;width:28px;text-align:right;flex:none}
+  .addrule{font-size:12.5px;color:var(--brand);font-weight:500;padding:6px 0;display:inline-flex;align-items:center;gap:5px}
+  .addrule:hover{text-decoration:underline}
+  .rulebox{border:1px solid var(--border);border-radius:10px;padding:6px 14px 10px;background:#fff}
+  .rulebox.exc{border-color:var(--red-bd)}
+  .fixed-exc{font-size:11.5px;color:var(--text-3);padding-top:8px;border-top:1px dashed var(--border);margin-top:4px}
+  .live-count{display:flex;align-items:baseline;gap:8px;padding:11px 14px;background:var(--brand-tint);border:1px solid #BAE0FF;border-radius:10px;margin-bottom:10px}
+  .live-count .n{font-size:21px;font-weight:700;color:var(--brand-active);font-variant-numeric:tabular-nums}
+  .live-count .t{font-size:12.5px;color:var(--brand-active)}
+  .live-count .live{margin-left:auto;font-size:10.5px;font-weight:600;color:var(--brand-active);display:flex;gap:5px;align-items:center}
+  .pulse{width:7px;height:7px;border-radius:99px;background:var(--brand);animation:pulse 1.6s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+  @media (prefers-reduced-motion:reduce){.pulse{animation:none}}
+  .mini{border:1px solid var(--border);border-radius:9px;overflow:hidden}
+  .mini-row{display:flex;align-items:center;gap:10px;padding:8px 12px;font-size:12.5px;border-bottom:1px solid var(--border)}
+  .mini-row:last-child{border-bottom:none}
+  .mini-row .mn{font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mini-row .md{color:var(--text-3);flex:none;font-variant-numeric:tabular-nums}
+  .mini-row.exc-row{opacity:.6}
+  .mini-row.exc-row .mn,.mini-row.exc-row .md{text-decoration:line-through}
+  .mini-more{padding:7px 12px;font-size:11.5px;color:var(--text-3);background:var(--muted-30)}
+  .btn:disabled{opacity:.4;cursor:not-allowed}
+
+  /* ===== Modals ===== */
+  .modal-ov{position:absolute;inset:0;background:rgba(15,23,42,.4);display:none;place-items:center;z-index:60;padding:24px}
+  .modal-ov.open{display:grid}
+  .modal{background:#fff;border-radius:14px;box-shadow:0 20px 60px rgba(15,23,42,.25);width:min(640px,100%);max-height:92%;display:flex;flex-direction:column;overflow:hidden}
+  .modal-h{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+  .modal-h h3{font-size:16px;font-weight:700}
+  .modal-b{padding:20px 22px;overflow-y:auto}
+  .modal-f{padding:14px 22px;border-top:1px solid var(--border);display:flex;justify-content:space-between;gap:10px;background:var(--muted-30)}
+  .steps{display:flex;gap:6px}
+  .stepdot{width:8px;height:8px;border-radius:99px;background:var(--border-2)}
+  .stepdot.on{background:var(--brand)}
+  .field{margin-bottom:16px}
+  .field label{display:block;font-size:12.5px;font-weight:600;margin-bottom:6px}
+  .field select,.field input[type=text],.field textarea{width:100%;font-size:13px;border:1px solid var(--border-2);border-radius:8px;padding:8px 10px;background:#fff}
+  .field textarea{min-height:84px;resize:vertical;line-height:1.5}
+  .radio-card{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--border-2);border-radius:10px;padding:11px 13px;cursor:pointer;font-size:13px}
+  .radio-card + .radio-card{margin-top:8px}
+  .radio-card input{margin-top:3px;accent-color:var(--brand)}
+  .radio-card.sel{border-color:var(--brand);background:var(--brand-tint)}
+  .radio-card b{display:block;font-size:13px}
+  .radio-card span{color:var(--text-2);font-size:12px}
+  .customrhythm{display:flex;gap:8px;align-items:center;margin-top:8px;font-size:12.5px;flex-wrap:wrap}
+  .customrhythm select{border:1px solid var(--border-2);border-radius:7px;padding:4px 7px;font-size:12.5px;background:#fff}
+  .switchrow{display:flex;align-items:center;gap:10px;padding:10px 0;font-size:13px}
+  .switch{width:36px;height:20px;border-radius:99px;background:var(--border-2);position:relative;transition:background .15s;flex:none}
+  .switch::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:99px;background:#fff;transition:left .15s;box-shadow:var(--shadow-sm)}
+  .switch.on{background:var(--brand)}
+  .switch.on::after{left:18px}
+  .lockrow{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--text-3);padding:7px 0}
+  .topic{display:flex;gap:11px;align-items:flex-start;padding:9px 0;border-top:1px solid var(--border)}
+  .topic:first-child{border-top:none}
+  .topic .topic-t{font-size:13px;font-weight:500}
+  .topic .topic-d{font-size:11.5px;color:var(--text-3);margin-top:1px}
+  .backlog-callout{border:1px solid var(--amber-bd);background:var(--amber-bg);border-radius:10px;padding:13px 15px;font-size:13px;color:var(--amber-fg)}
+  .backlog-callout b{display:block;margin-bottom:3px}
+  .reset-link{font-size:11.5px;color:var(--brand);font-weight:500;margin-left:auto;cursor:pointer}
+  .reset-link:hover{text-decoration:underline}
+
+  .toast{position:absolute;bottom:22px;left:50%;transform:translateX(-50%) translateY(80px);background:#1F1F1F;color:#fff;font-size:13px;border-radius:10px;padding:10px 18px;display:flex;gap:9px;align-items:center;transition:transform .25s ease;z-index:80;box-shadow:0 10px 30px rgba(0,0,0,.3);max-width:80%}
+  .toast.show{transform:translateX(-50%) translateY(0)}
+
+  @media (max-width:1000px){
+    .sidebar{display:none}
+    .stat-grid{grid-template-columns:repeat(2,1fr)}
+  }
+</style>
+
+<div class="proto-note">
+  <b>♻️ AI Estimate Rehash — clickable prototype (frontend only, mock data).</b>
+  <span>Tenant: Summit Air &amp; Heat.</span>
+  <span style="margin-left:auto;display:flex;gap:6px;align-items:center;flex:none">
+    <span style="font-weight:600;color:#33404f">Compare IA:</span>
+    <button class="btn btn-sm btn-primary" id="iaBtnOne" onclick="setIA('one')">A · One queue</button>
+    <button class="btn btn-sm btn-outline" id="iaBtnTwo" onclick="setIA('two')">B · Two tabs</button>
+  </span>
+</div>
+
+<div class="frame" id="frame">
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+      <div><div class="brand-name">Breezy</div><div class="brand-sub">AI for the trades</div></div>
+    </div>
+    <nav class="nav">
+      <div class="nav-group">General</div>
+      <button class="nav-item"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>Dashboard</button>
+      <button class="nav-item" id="navSR" onclick="showPage('opps')"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6M9 16h6"/></svg><span id="navSRLabel">Opportunities</span></button>
+      <button class="nav-item" id="navRL" onclick="showPage('rl')" hidden><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg>Rehashed Leads</button>
+      <button class="nav-item" id="navConv" onclick="showPage('conv')"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Conversations</button>
+      <button class="nav-item"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Contacts</button>
+      <div class="nav-group">Agents &amp; Tools</div>
+      <button class="nav-item"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>Voice Agent</button>
+      <button class="nav-item"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M2 14h2M20 14h2M15 13v2M9 13v2"/></svg>Website Chatbot</button>
+      <button class="nav-item"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/></svg>Booking Form</button>
+      <button class="nav-item active" id="navRehash" onclick="showPage('rehash')" aria-current="page"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15.36-6.36L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15.36 6.36L3 16"/><path d="M3 21v-5h5"/></svg>Estimate Rehashing<span class="nav-new">NEW</span></button>
+      <div class="nav-group">Company</div>
+      <button class="nav-item"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v2m0 16v2m10-10h-2M4 12H2m17.07-7.07-1.41 1.41M6.34 17.66l-1.41 1.41m14.14 0-1.41-1.41M6.34 6.34 4.93 4.93"/></svg>Settings</button>
+      <button class="nav-item"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Team</button>
+      <button class="nav-item"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>Job Types</button>
+      <button class="nav-item"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22v-5"/><path d="M9 8V2h6v6"/><path d="M5 8h14a1 1 0 0 1 1 1v3a5 5 0 0 1-5 5h-6a5 5 0 0 1-5-5V9a1 1 0 0 1 1-1z"/></svg>Integrations</button>
+    </nav>
+    <div class="nav-footer">
+      <button class="nav-item"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Logout</button>
+    </div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <div class="main">
+    <div class="topbar">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#595959" stroke-width="2" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+      <div class="sep"></div>
+      <div class="crumb" id="crumb">Agents &amp; Tools / <b>Estimate Rehashing</b></div>
+      <div class="tenant"><span class="avatar">SA</span>Summit Air &amp; Heat</div>
+    </div>
+
+    <!-- ============ REHASH PAGE ============ -->
+    <div class="page" id="page-rehash">
+      <div class="page-h">
+        <div>
+          <h1>Estimate Rehashing</h1>
+          <p>Your assistant follows up on unsold estimates by text and hands warm leads to your team.</p>
+        </div>
+        <div class="actions">
+          <button class="btn btn-outline" onclick="toast('Estimate import is handled by the Breezy team — latest file: Jul 8, 6:00 AM')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Data import</button>
+          <button class="btn btn-primary" onclick="openWizard(null)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>New campaign</button>
+        </div>
+      </div>
+
+      <div class="tabs" role="tablist">
+        <button class="tab active" role="tab" data-tab="overview" onclick="showTab('overview')">Overview</button>
+        <button class="tab" role="tab" data-tab="segments" onclick="showTab('segments')">Segments</button>
+        <button class="tab" role="tab" data-tab="campaigns" onclick="showTab('campaigns')">Campaigns</button>
+      </div>
+
+      <!-- OVERVIEW -->
+      <section id="tab-overview">
+        <div class="stat-grid">
+          <div class="card stat"><div class="lbl">Open estimates being worked</div><div class="val">38</div><div class="sub">of 214 imported · 12 excluded by your rules</div></div>
+          <div class="card stat"><div class="lbl">Reply rate (30 days)</div><div class="val">47%</div><div class="sub"><span class="delta">▲ 9pts</span> vs first two weeks</div></div>
+          <div class="card stat"><div class="lbl">Warm leads handed off</div><div class="val">11</div><div class="sub">3 waiting on your team ↓</div></div>
+          <div class="card stat"><div class="lbl">Recovered revenue</div><div class="val">$7,850</div><div class="sub">Estimates sold within 30 days of assistant contact</div></div>
+        </div>
+        <div id="warmPointer" style="margin-top:24px"></div>
+        <div class="section-lbl">Campaigns at a glance</div>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>Campaign</th><th>Segments</th><th style="width:110px">In cadence</th><th style="width:100px">Replies</th><th style="width:100px">Handoffs</th><th style="width:120px">Status</th></tr></thead>
+            <tbody id="campGlance"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- SEGMENTS -->
+      <section id="tab-segments" hidden>
+        <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:12px">
+          <div>
+            <div style="font-size:15px;font-weight:600">Your segments</div>
+            <div class="t-muted" style="font-size:12.5px">Saved filters over your estimates. Segments update themselves — estimates join when they match and leave the moment they don't.</div>
+          </div>
+          <button class="btn btn-primary" style="margin-left:auto;flex:none" onclick="openSegDrawer(null)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>New segment</button>
+        </div>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th style="width:230px">Segment</th><th>Rules</th><th style="width:110px">Match now</th><th style="width:180px">Used by campaign</th><th style="width:70px"></th></tr></thead>
+            <tbody id="segListRows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- CAMPAIGNS -->
+      <section id="tab-campaigns" hidden>
+        <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:12px">
+          <div>
+            <div style="font-size:15px;font-weight:600">Your campaigns</div>
+            <div class="t-muted" style="font-size:12.5px">Click a row for full details and editing. Stopping a campaign freezes it in place — no one new starts, no one mid-sequence gets messages.</div>
+          </div>
+        </div>
+        <div class="tablewrap">
+          <table>
+            <thead><tr>
+              <th style="width:150px">Campaign</th>
+              <th>Segment</th>
+              <th style="width:120px">Rhythm</th>
+              <th style="width:140px">Stops when</th>
+              <th style="width:110px">Re-entry</th>
+              <th style="width:96px">Status</th>
+              <th style="width:80px">In cadence</th>
+              <th style="width:64px">Replies</th>
+              <th style="width:72px">Handoffs</th>
+              <th style="width:70px">Excluded</th>
+              <th style="width:108px">Actions</th>
+            </tr></thead>
+            <tbody id="campRows"></tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- ============ OPPORTUNITIES / SERVICE REQUESTS PAGE ============ -->
+    <div class="page" id="page-opps" hidden><div id="oppsRoot"></div></div>
+
+    <!-- ============ REHASHED LEADS PAGE (Option B) ============ -->
+    <div class="page" id="page-rl" hidden><div id="rlRoot"></div></div>
+
+    <!-- ============ CONVERSATIONS PAGE ============ -->
+    <div class="page" id="page-conv" hidden><div id="convRoot"></div></div>
+  </div>
+
+  <!-- ============ SHARED OVERLAY / DRAWERS ============ -->
+  <div class="overlay" id="overlay" onclick="closeAllDrawers()"></div>
+
+  <aside class="drawer" id="convDrawer" aria-label="Details">
+    <div class="drawer-h">
+      <div class="ref"><span id="dRef">#R-1042</span> · SMS
+        <button class="btn-ghost btn-sm btn" style="margin-left:auto" onclick="closeAllDrawers()" aria-label="Close">✕</button>
+      </div>
+      <h2 id="dName">Maria Gonzalez</h2>
+      <div style="display:flex;gap:6px;flex-wrap:wrap" id="dBadges"></div>
+    </div>
+    <div class="drawer-body" id="dBody"></div>
+  </aside>
+
+  <aside class="drawer" id="segDrawer" aria-label="Segment editor">
+    <div class="drawer-h">
+      <div class="ref"><span id="segDrawerKicker">NEW SEGMENT</span>
+        <button class="btn-ghost btn-sm btn" style="margin-left:auto" onclick="closeAllDrawers()" aria-label="Close">✕</button>
+      </div>
+      <input type="text" id="segName" class="nameinput" placeholder="Name this segment — e.g. High-value AC quotes" style="margin-top:6px" />
+    </div>
+    <div class="drawer-body">
+      <div class="dsec">
+        <h4>Who's included</h4>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:9px;font-size:12.5px;color:var(--text-2)">
+          Estimates must match
+          <div class="segmented" role="group" aria-label="Match mode">
+            <button id="modeAll" class="on" onclick="setMode('all')">every rule (AND)</button>
+            <button id="modeAny" onclick="setMode('any')">any rule (OR)</button>
+          </div>
+        </div>
+        <div class="rulebox">
+          <div id="incRules"></div>
+          <button class="addrule" onclick="addRule('include')">+ Add rule</button>
+        </div>
+      </div>
+      <div class="dsec">
+        <h4>Always left out</h4>
+        <div class="rulebox exc">
+          <div id="excRules"></div>
+          <button class="addrule" onclick="addRule('exclude')">+ Add exclusion</button>
+          <div class="fixed-exc">Opted-out customers, and anyone you've marked "don't rehash", are always left out — you can't override this.</div>
+        </div>
+      </div>
+      <div class="dsec">
+        <h4>Who matches right now</h4>
+        <div class="live-count"><span class="n" id="segCount">0</span><span class="t">estimates match</span><span class="live"><span class="pulse"></span>LIVE</span></div>
+        <div class="mini" id="segMini"></div>
+        <p class="hint">Use the ⊘ button to exclude someone from rehashing (you'll confirm why). Excluded people stay visible, crossed out — bring them back anytime with the restore button.</p>
+      </div>
+    </div>
+    <div class="drawer-f">
+      <button class="btn btn-outline" onclick="closeAllDrawers()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSegment()">Save segment</button>
+    </div>
+  </aside>
+
+  <aside class="drawer" id="campDrawer" aria-label="Campaign details">
+    <div class="drawer-h">
+      <div class="ref"><span>CAMPAIGN</span>
+        <button class="btn-ghost btn-sm btn" style="margin-left:auto" onclick="closeAllDrawers()" aria-label="Close">✕</button>
+      </div>
+      <h2 id="cdName">Residential rehash</h2>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center" id="cdBadges"></div>
+    </div>
+    <div class="drawer-body" id="cdBody"></div>
+    <div class="drawer-f" id="cdFooter"></div>
+  </aside>
+
+  <!-- CAMPAIGN WIZARD (drawer) -->
+  <aside class="drawer" id="wizDrawer" aria-label="Campaign editor">
+    <div class="drawer-h">
+      <div class="ref"><span id="wKicker">NEW CAMPAIGN</span>
+        <span class="steps" style="margin-left:10px"><span class="stepdot on" id="sd1"></span><span class="stepdot" id="sd2"></span><span class="stepdot" id="sd3"></span></span>
+        <button class="btn-ghost btn-sm btn" style="margin-left:auto" onclick="closeAllDrawers()" aria-label="Close">✕</button>
+      </div>
+      <h2 id="wTitle" style="margin-bottom:2px">Audience</h2>
+    </div>
+    <div class="drawer-body">
+      <div id="wstep1">
+        <div class="field">
+          <label>Campaign name</label>
+          <input type="text" id="campName" placeholder="e.g. Water heater rehash" />
+        </div>
+        <div class="field">
+          <label>Who gets followed up? Pick one or more segments</label>
+          <div id="wSegList"></div>
+          <div class="hint">A campaign keeps running: any new estimate that matches a selected segment gets followed up automatically. Sold estimates drop out on their own. A customer in two segments only gets one conversation.</div>
+          <button class="btn btn-outline btn-sm" style="margin-top:10px" onclick="wizToNewSegment()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Create a new segment</button>
+        </div>
+      </div>
+      <div id="wstep2" hidden>
+        <div class="field">
+          <label>Follow-up rhythm</label>
+          <label class="radio-card sel"><input type="radio" name="cad" value="standard" checked><span><b>Standard — 5 texts over 14 days (recommended)</b><span>Short, question-first messages. Stops the moment they reply.</span></span></label>
+          <label class="radio-card"><input type="radio" name="cad" value="gentle"><span><b>Gentle — 3 texts over 14 days</b><span>For customers you don't want to nudge as often.</span></span></label>
+          <label class="radio-card"><input type="radio" name="cad" value="custom"><span><b>Custom — you choose</b><span>Pick how many texts and over how long.</span>
+            <span class="customrhythm" id="customRhythm" style="display:none">
+              <select id="cTouches" onclick="event.preventDefault()"><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option></select> texts over
+              <select id="cDays" onclick="event.preventDefault()"><option>7</option><option>10</option><option selected>14</option><option>21</option><option>30</option></select> days
+            </span></span></label>
+        </div>
+        <div class="field">
+          <label>Topics the assistant can bring up</label>
+          <div id="topicList"></div>
+          <div class="hint" style="margin-top:8px">The assistant writes each text itself and always answers questions from the estimate. These are the extra topics it's allowed to raise when they fit the conversation — turn on only what suits your business.</div>
+        </div>
+        <div class="field">
+          <label>Tone</label>
+          <div class="segmented" id="toneSeg" role="group" aria-label="Tone"></div>
+        </div>
+        <div class="field">
+          <label>Anything specific to mention or avoid? <span class="t-muted" style="font-weight:400">(optional)</span></label>
+          <textarea id="guidance" maxlength="200" placeholder="e.g. We don't service pools. Feel free to mention our 5-star Google rating."></textarea>
+        </div>
+        <div class="lockrow" style="align-items:flex-start">🔒 Built in, can't be changed: never offers a discount, never quotes a specific monthly payment, only answers from the estimate, and hands warm leads to your team instead of closing the deal itself.</div>
+      </div>
+      <div id="wstep3" hidden>
+        <div class="field">
+          <label>When does it stop for a customer?</label>
+          <div style="display:flex;flex-direction:column;gap:7px">
+            <div class="lockrow" style="color:var(--text-2);padding:0">✓ Your assistant hands them off as a warm lead</div>
+            <div class="lockrow" style="color:var(--text-2);padding:0">✓ The estimate is marked sold or lost</div>
+            <div class="lockrow" style="color:var(--text-2);padding:0">✓ They ask you to stop — in any wording</div>
+            <div class="lockrow" style="color:var(--text-2);padding:0">✓ You exclude them from rehashing</div>
+            <div class="lockrow" style="color:var(--text-2);padding:0">✓ All follow-ups have been sent</div>
+          </div>
+        </div>
+        <div class="field">
+          <label>If this customer gets another estimate later, follow up again?</label>
+          <label class="radio-card"><input type="radio" name="re" value="never"><span><b>Never</b><span>One follow-up sequence per customer, ever.</span></span></label>
+          <label class="radio-card sel"><input type="radio" name="re" value="90" checked><span><b>Only after 90 days (recommended)</b><span>New estimates re-enter, but never back-to-back.</span></span></label>
+          <label class="radio-card"><input type="radio" name="re" value="always"><span><b>Always</b><span>Every new matching estimate starts a fresh follow-up.</span></span></label>
+        </div>
+        <div class="backlog-callout" id="backlogBox">
+          <b>Include the <span id="backlogN">7</span> estimates already in <span id="backlogSeg">these segments</span>?</b>
+          These were sent before today. We'll spread their first texts over the next 3 days (business hours only) instead of blasting them at once.
+          <div class="switchrow" style="padding-bottom:0"><button class="switch on" id="backlogSwitch" onclick="this.classList.toggle('on')" role="switch" aria-checked="true" aria-label="Include existing estimates"></button>Yes, work the backlog <span class="t-muted">— this is usually where the money is</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="drawer-f">
+      <button class="btn btn-outline" onclick="wizBack()" id="wBack" style="margin-right:auto">Cancel</button>
+      <button class="btn btn-primary" onclick="wizNext()" id="wNext">Next: assistant behavior</button>
+    </div>
+  </aside>
+
+  <!-- EXCLUDE MODAL -->
+  <div class="modal-ov" id="excModal">
+    <div class="modal" role="dialog" aria-label="Exclude from rehashing" style="width:min(460px,100%)">
+      <div class="modal-h"><h3>Don't rehash <span id="excName">this customer</span>?</h3></div>
+      <div class="modal-b">
+        <p style="font-size:13px;color:var(--text-2);margin-bottom:12px">The assistant will stop texting them and never include them again. Why are you excluding them? <span class="t-muted">(helps your team later)</span></p>
+        <label class="radio-card sel"><input type="radio" name="excR" checked value="We're handling it directly"><span><b>We're handling it directly</b></span></label>
+        <label class="radio-card"><input type="radio" name="excR" value="Customer asked us not to contact them"><span><b>They asked us not to contact them</b></span></label>
+        <label class="radio-card"><input type="radio" name="excR" value="Wrong or outdated contact info"><span><b>Wrong or outdated contact info</b></span></label>
+        <label class="radio-card"><input type="radio" name="excR" value="Other"><span><b>Other</b></span></label>
+      </div>
+      <div class="modal-f">
+        <button class="btn btn-outline" onclick="closeExc()">Cancel</button>
+        <button class="btn btn-primary" onclick="confirmExc()">Exclude from rehash</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAUSE MODAL -->
+  <div class="modal-ov" id="pauseModal">
+    <div class="modal" role="dialog" aria-label="Stop campaign" style="width:min(480px,100%)">
+      <div class="modal-h"><h3 id="pauseTitle">Stop this campaign?</h3></div>
+      <div class="modal-b">
+        <p style="font-size:13.5px;margin-bottom:12px">Stopping <b>freezes everything in place</b>:</p>
+        <ul style="font-size:13px;color:var(--text-2);padding-left:18px;display:grid;gap:6px">
+          <li>No new estimates start the follow-up</li>
+          <li>Customers mid-sequence get <b>no more messages</b> until you resume</li>
+          <li>If a customer texts back while stopped, you'll still be notified</li>
+        </ul>
+      </div>
+      <div class="modal-f">
+        <button class="btn btn-outline" onclick="closePauseModal()">Keep running</button>
+        <button class="btn btn-primary" onclick="confirmPause()">Stop campaign</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#52C41A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span id="toastMsg"></span></div>
+</div>
+
+<script>
+/* ================= Mock estimates ================= */
+const estimates=[
+ {name:"Maria Gonzalez",job:"AC Replacement",amt:12400,age:34,cust:"Residential",tags:[],status:"open",mobile:true,emailOk:true,phone:"(512) 555-0182"},
+ {name:"Dave Kowalski",job:"AC Replacement",amt:9800,age:41,cust:"Residential",tags:[],status:"open",mobile:true,emailOk:false,phone:"(512) 555-0147"},
+ {name:"Priya Patel",job:"Water Heater",amt:2350,age:38,cust:"Residential",tags:[],status:"open",mobile:true,emailOk:true,phone:"(512) 555-0129"},
+ {name:"Tom Reyes",job:"Furnace Repair",amt:1180,age:52,cust:"Residential",tags:[],status:"open",mobile:true,emailOk:true,phone:"(512) 555-0135"},
+ {name:"Angela Wu",job:"Duct Repair",amt:3400,age:33,cust:"Residential",tags:["Member"],status:"open",mobile:true,emailOk:true,phone:"(512) 555-0117"},
+ {name:"Hector Alvarez",job:"AC Replacement",amt:14750,age:67,cust:"Residential",tags:["no-AI"],status:"open",mobile:true,emailOk:true,phone:"(512) 555-0161"},
+ {name:"Janet Miller",job:"Water Heater",amt:2900,age:96,cust:"Residential",tags:[],status:"open",mobile:false,emailOk:true,phone:"(512) 555-0108"},
+ {name:"Frank O'Neal",job:"Furnace Repair",amt:840,age:35,cust:"Residential",tags:[],status:"open",mobile:true,emailOk:false,phone:"(512) 555-0176"},
+ {name:"Lisa Chen",job:"AC Replacement",amt:11200,age:44,cust:"Residential",tags:["Member"],status:"open",mobile:true,emailOk:true,phone:"(512) 555-0153"},
+ {name:"Marcus Boyd",job:"Duct Repair",amt:5100,age:39,cust:"Residential",tags:[],status:"open",mobile:true,emailOk:true,phone:"(512) 555-0139"},
+ {name:"Sofia Ramos",job:"Water Heater",amt:2600,age:31,cust:"Residential",tags:[],status:"open",mobile:true,emailOk:true,phone:"(512) 555-0121"},
+ {name:"Greenline Offices LLC",job:"AC Replacement",amt:28400,age:48,cust:"Commercial",tags:[],status:"open",mobile:true,emailOk:true,phone:"(512) 555-0190"},
+ {name:"Taco Bueno #114",job:"Duct Repair",amt:7300,age:36,cust:"Commercial",tags:[],status:"open",mobile:true,emailOk:true,phone:"(512) 555-0114"},
+ {name:"Bill Hartman",job:"Furnace Repair",amt:1420,age:22,cust:"Residential",tags:[],status:"open",mobile:true,emailOk:true,phone:"(512) 555-0187"},
+ {name:"Nadia Karim",job:"AC Replacement",amt:10800,age:12,cust:"Residential",tags:[],status:"open",mobile:true,emailOk:true,phone:"(512) 555-0168"},
+ {name:"Owen Fitzgerald",job:"Water Heater",amt:2150,age:9,cust:"Residential",tags:[],status:"open",mobile:true,emailOk:true,phone:"(512) 555-0142"},
+ {name:"Renee Dubois",job:"AC Replacement",amt:13900,age:105,cust:"Residential",tags:[],status:"open",mobile:true,emailOk:true,phone:"(512) 555-0195"},
+ {name:"Sam Nguyen",job:"Furnace Repair",amt:960,age:88,cust:"Residential",tags:[],status:"open",mobile:true,emailOk:false,phone:"(512) 555-0148"},
+ {name:"Carla Espinoza",job:"Duct Repair",amt:4250,age:58,cust:"Residential",tags:[],status:"open",mobile:true,emailOk:true,phone:"(512) 555-0126"},
+ {name:"Peak Fitness Gym",job:"AC Replacement",amt:31200,age:29,cust:"Commercial",tags:["no-AI"],status:"open",mobile:true,emailOk:true,phone:"(512) 555-0199"},
+ {name:"Judy Blalock",job:"Water Heater",amt:2780,age:61,cust:"Residential",tags:[],status:"open",mobile:true,emailOk:true,phone:"(512) 555-0111"},
+ {name:"Aaron Schultz",job:"AC Replacement",amt:9450,age:47,cust:"Residential",tags:[],status:"sold",mobile:true,emailOk:true,phone:"(512) 555-0102"},
+ {name:"Dana Whitfield",job:"Furnace Repair",amt:1310,age:73,cust:"Residential",tags:[],status:"open",mobile:true,emailOk:true,phone:"(512) 555-0173"},
+ {name:"Miguel Santos",job:"Duct Repair",amt:3980,age:83,cust:"Residential",tags:[],status:"open",mobile:true,emailOk:true,phone:"(512) 555-0131"}
+];
+/* Bulk of the 214-estimate import — generated deterministically so the preview pagination is real */
+(function(){
+  const fn=["Alex","Jordan","Casey","Riley","Morgan","Taylor","Jamie","Quinn","Avery","Cameron"];
+  const ln=["Baker","Cole","Diaz","Evans","Foster","Grimes","Hayes","Ingram","Jensen","Klein","Lopez","Mercer","Nolan","Ortiz","Price","Quiroz","Reid","Sloan","Turner","Usher"];
+  const jobs=["AC Replacement","Furnace Repair","Water Heater","Duct Repair"];
+  for(let i=0;i<40;i++){
+    estimates.push({
+      name:fn[i%10]+" "+ln[(i*3+Math.floor(i/10))%20],
+      job:jobs[i%4],
+      amt:800+((i*937)%14000),
+      age:8+((i*7)%170),
+      cust:i%6===0?"Commercial":"Residential",
+      tags:i%9===0?["Member"]:[],
+      status:"open",mobile:true,emailOk:i%3!==0,
+      phone:"(512) 555-0"+String(200+i)});
+  }
+})();
+
+/* ================= Rule engine ================= */
+const FIELDS={
+ status:{label:"Estimate status",ops:["is"],vals:["Open","Sold","Lost"]},
+ created:{label:"Estimate created",ops:["more than","less than"],vals:[["7","7 days ago"],["14","14 days ago"],["30","30 days ago"],["90","90 days ago"],["180","6 months ago"]]},
+ jobtype:{label:"Job type",ops:["is","is not"],vals:["AC Replacement","Furnace Repair","Water Heater","Duct Repair"]},
+ amount:{label:"Amount",ops:["is at least","is at most"],vals:[["500","$500"],["1000","$1,000"],["2500","$2,500"],["5000","$5,000"],["10000","$10,000"]]},
+ cust:{label:"Customer type",ops:["is"],vals:["Residential","Commercial"]},
+ channel:{label:"Contact info",ops:["has"],vals:["Mobile phone","Email address"]},
+ tag:{label:"Tag",ops:["is"],vals:["no-AI","Member"]}
+};
+function fieldVals(f){return FIELDS[f].vals.map(v=>Array.isArray(v)?v:[v,v])}
+function evalRule(e,r){switch(r.field){
+ case "status":return (e.status==="open"?"Open":e.status==="sold"?"Sold":"Lost")===r.value;
+ case "created":return r.op==="more than"?e.age>+r.value:e.age<+r.value;
+ case "jobtype":return r.op==="is"?e.job===r.value:e.job!==r.value;
+ case "amount":return r.op==="is at least"?e.amt>=+r.value:e.amt<=+r.value;
+ case "cust":return e.cust===r.value;
+ case "channel":return r.value==="Mobile phone"?e.mobile:e.emailOk;
+ case "tag":return e.tags.includes(r.value);
+ default:return true}}
+function matchConditions(f){return estimates.filter(e=>{
+ const inc=f.include.length?(f.mode==="any"?f.include.some(r=>evalRule(e,r)):f.include.every(r=>evalRule(e,r))):true;
+ return inc&&!f.exclude.some(r=>evalRule(e,r))})}
+function matchRows(f){return matchConditions(f).filter(e=>!e.excluded)}
+function ruleText(r){
+ const vl=fieldVals(r.field).find(v=>v[0]===String(r.value));
+ const disp=vl?vl[1]:r.value;
+ if(r.field==="created")return `Created ${r.op} ${disp}`;
+ if(r.field==="channel")return `Has ${disp.toLowerCase()}`;
+ return `${FIELDS[r.field].label} ${r.op} ${disp}`}
+function summarize(f){
+ const inc=f.include.map(ruleText).join(f.mode==="any"?" or ":" and ")||"All estimates";
+ const exc=f.exclude.length?` · leaves out: ${f.exclude.map(ruleText).join(", ")}`:"";
+ return inc+exc}
+function money(n){return "$"+n.toLocaleString()}
+
+/* ================= Stores ================= */
+const R=(field,op,value)=>({field,op,value});
+let segments=[
+ {id:1,name:"Aging residential (30+ days)",filters:{mode:"all",include:[R("status","is","Open"),R("created","more than","30"),R("cust","is","Residential")],exclude:[R("tag","is","no-AI")]}},
+ {id:2,name:"Commercial · open 14+ days",filters:{mode:"all",include:[R("status","is","Open"),R("created","more than","14"),R("cust","is","Commercial")],exclude:[R("tag","is","no-AI")]}},
+ {id:3,name:"Dormant · 6+ months",filters:{mode:"all",include:[R("status","is","Open"),R("created","more than","180")],exclude:[R("tag","is","no-AI")]}},
+ {id:4,name:"Water heater quotes (14+ days)",filters:{mode:"all",include:[R("status","is","Open"),R("created","more than","14"),R("jobtype","is","Water Heater")],exclude:[R("tag","is","no-AI")]}}
+];
+let nextSegId=5;
+/* Topics the assistant may proactively raise (each opt-in, like the old financing toggle) */
+const TOPICS=[
+ {id:"financing",label:"Financing options",desc:"When price is the holdup, mention monthly-payment options and share your financing link.",def:true},
+ {id:"priceIncrease",label:"Price increase / quote expiring",desc:"An honest nudge that equipment prices keep rising — and offer a fresh quote.",def:true},
+ {id:"warranty",label:"Warranty & what's included",desc:"Reassure what the price covers and the warranty — straight from the estimate.",def:true},
+ {id:"seasonal",label:"Seasonal timing",desc:"\"Beat the summer rush\" — book before peak season. Great for dormant re-engagement.",def:false},
+ {id:"maintenance",label:"Maintenance plan / membership",desc:"Invite customers who aren't members yet to your service plan.",def:false}
+];
+const TONES=[["friendly","Friendly & casual"],["professional","Warm & professional"],["direct","Short & to the point"]];
+function defaultTopics(){return Object.fromEntries(TOPICS.map(t=>[t.id,t.def]))}
+let campaigns=[
+ {id:1,name:"Residential rehash",segIds:[1],status:"active",rhythm:"5 texts over 14 days",topics:{financing:true,priceIncrease:true,warranty:true,seasonal:false,maintenance:false},tone:"professional",guidance:"",reentry:"Only after 90 days",stats:{cad:24,rep:17,hand:8}},
+ {id:2,name:"Commercial follow-up",segIds:[2],status:"paused",rhythm:"3 texts over 10 days",topics:{financing:false,priceIncrease:true,warranty:true,seasonal:false,maintenance:false},tone:"professional",guidance:"",reentry:"Never",stats:{cad:6,rep:4,hand:2}},
+ {id:3,name:"Dormant winter revival",segIds:[3],status:"draft",rhythm:"3 texts over 21 days",topics:{financing:true,priceIncrease:true,warranty:false,seasonal:true,maintenance:false},tone:"professional",guidance:"",reentry:"Only after 90 days",stats:{cad:0,rep:0,hand:0},blocked:"Dormant contacts need a consent record, a purchase in the last 18 months, or a Do-Not-Call check. 41 of 63 qualify so far."}
+];
+let nextCampId=4;
+function segUsedBy(id){return campaigns.filter(c=>c.segIds.includes(id)&&c.status!=="archived").map(c=>c.name)}
+
+/* ================= Conversations (threads) ================= */
+const conversations={
+ "R-1042":{name:"Maria Gonzalez",ref:"#R-1042",
+  estimate:{job:"AC Replacement — 3-ton, 16 SEER",amt:"$12,400",age:"34 days",status:"Open",opt:"Option B of 2 (good-better)"},
+  phone:"(512) 555-0182",addr:"2314 Larkspur Ln, Austin TX 78745",
+  summary:"Asked whether the quote still stands and about monthly payments. Interested in moving forward before August heat. Wants a call from your team.",
+  handoff:"Maria Gonzalez is interested in the AC Replacement estimate (#E-2041, $12,400, sent 34 days ago). She asked about monthly payments. Best number: (512) 555-0182. — sent to Roberto (SMS + email), 2h 15m ago",
+  chat:[
+   ["agent","Hi Maria, it's Summit Air & Heat. Just making sure you had a great experience — any questions on the AC replacement quote?","Day 3 · 10:12 AM"],
+   ["cust","Honestly we've been putting it off, is the price still good?","Day 5 · 6:41 PM"],
+   ["agent","Good question — the quote is valid through Jul 28. It covers a 3-ton 16-SEER system, install and haul-away included. Anything you'd like me to clarify?","Day 5 · 6:42 PM"],
+   ["cust","It's a lot at once. do you guys do payments?","Day 5 · 6:44 PM"],
+   ["agent","Totally understandable. Monthly payment options are available — you can check what you'd qualify for here (no credit impact): summitair.wisetack.us/prequal. Want me to have Roberto give you a call to walk through it?","Day 5 · 6:45 PM"],
+   ["cust","yes please, after 5pm works","Day 5 · 6:47 PM"],
+   ["sys","Warm-lead handoff sent to Roberto · cadence stopped"]
+  ]},
+ "R-1038":{name:"Dave Kowalski",ref:"#R-1038",
+  estimate:{job:"AC Replacement — 2.5-ton, 15 SEER",amt:"$9,800",age:"41 days",status:"Open",opt:"Single option"},
+  phone:"(512) 555-0147",addr:"808 Cedar Bend Dr, Austin TX 78758",
+  summary:"Asked how the quoted system compares to what he has now. Answered from the estimate record. He asked whether install is available this month — needs scheduling, handed off.",
+  handoff:"Dave Kowalski asked about install timing for the AC Replacement estimate (#E-2019, $9,800, sent 41 days ago). Best number: (512) 555-0147. — sent to Roberto (SMS + email), 5h 40m ago",
+  chat:[
+   ["agent","Hi Dave, it's Summit Air & Heat. Wanted to check in on the AC quote from last month — any questions I can answer?","Day 3 · 9:05 AM"],
+   ["cust","Remind me what SEER rating that was?","Day 3 · 12:22 PM"],
+   ["agent","The quoted system is a 2.5-ton, 15-SEER unit — that's the efficiency step up from your current 10-SEER. The $9,800 includes install and a 10-year parts warranty.","Day 3 · 12:23 PM"],
+   ["cust","Could you get it in before end of month?","Day 3 · 12:31 PM"],
+   ["agent","I'll have the team confirm scheduling — someone will call you today. Anything else you'd like me to pass along?","Day 3 · 12:31 PM"],
+   ["sys","Warm-lead handoff sent to Roberto · cadence stopped"]
+  ]},
+ "R-1029":{name:"Judy Blalock",ref:"#R-1029",
+  estimate:{job:"Water Heater — 50-gal gas",amt:"$2,780",age:"61 days",status:"Open",opt:"Single option"},
+  phone:"(512) 555-0111",addr:"77 Quail Hollow Rd, Round Rock TX 78664",
+  summary:"Replied that the water heater is now making noise and she wants it done 'soon'. High urgency — flagged for same-day call.",
+  handoff:"Judy Blalock says the water heater is making noise and wants to move 'soon' (#E-1988, $2,780, sent 61 days ago). Best number: (512) 555-0111. — sent to Roberto + office (SMS + email), 1d 3h ago",
+  chat:[
+   ["agent","Hi Judy, it's Summit Air & Heat. Checking in on the water heater quote — happy to answer any questions.","Day 3 · 10:30 AM"],
+   ["cust","Actually yes, it started making a rumbling noise last week. How soon could you do it","Day 4 · 8:02 AM"],
+   ["agent","Sorry to hear that — rumbling usually means sediment buildup, good timing to replace. I'll have the team call you today to get you scheduled. The quote ($2,780 installed) still stands.","Day 4 · 8:03 AM"],
+   ["sys","Warm-lead handoff sent to Roberto + office · cadence stopped"]
+  ]},
+ "R-1051":{name:"Priya Patel",ref:"#R-1051",
+  estimate:{job:"Water Heater — 40-gal gas",amt:"$2,350",age:"38 days",status:"Open",opt:"Single option"},
+  phone:"(512) 555-0129",addr:"1402 Bluebonnet Dr, Austin TX 78704",
+  summary:"Replied 20 minutes ago asking whether the quote includes hauling away the old unit. Assistant is answering from the estimate record.",
+  handoff:null,
+  chat:[
+   ["agent","Hi Priya, it's Summit Air & Heat. Just making sure you had a great experience — any questions on the water heater quote?","Day 3 · 9:00 AM"],
+   ["cust","Does that price include hauling away the old unit?","Today · 2:41 PM"],
+   ["agent","Yes — the $2,350 includes removal and disposal of your old unit, the new 40-gal gas heater, and installation. Anything else I can check?","Today · 2:41 PM"]
+  ]},
+ "R-1046":{name:"Sam Nguyen",ref:"#R-1046",
+  estimate:{job:"Furnace Repair — blower motor",amt:"$960",age:"88 days",status:"Open",opt:"Single option"},
+  phone:"(512) 555-0148",addr:"55 Pecan Grove Rd, Pflugerville TX 78660",
+  summary:"Asked to stop receiving messages. Suppressed permanently across all campaigns.",
+  handoff:null,
+  chat:[
+   ["agent","Hi Sam, it's Summit Air & Heat. Checking in on the furnace repair quote — any questions I can answer?","Day 3 · 11:15 AM"],
+   ["cust","please stop texting me","Day 3 · 6:20 PM"],
+   ["agent","Understood — you won't hear from us again. If you ever need anything, you know where to find us. Take care!","Day 3 · 6:20 PM"],
+   ["sys","Opt-out honored · suppressed permanently"]
+  ]},
+ "R-1033":{name:"Tom Reyes",ref:"#R-1033",
+  estimate:{job:"Furnace Repair — heat exchanger",amt:"$1,180",age:"52 days",status:"Open",opt:"Single option"},
+  phone:"(512) 555-0135",addr:"901 Mesa Verde Ct, Austin TX 78749",
+  summary:"No reply yet. Two of five texts sent; next touch Thursday 9:00 AM.",
+  handoff:null,
+  chat:[
+   ["agent","Hi Tom, it's Summit Air & Heat. Just making sure you had a great experience — any questions on the furnace quote?","Day 3 · 9:00 AM"],
+   ["agent","Hi Tom, quick check-in — happy to answer anything about the furnace repair quote. Want me to have the team hold a spot before the season rush?","Day 7 · 10:00 AM"],
+   ["sys","No reply yet · next text Thu 9:00 AM"]
+  ]}
+};
+
+/* ================= Roster (enrollment stages) ================= */
+const STAGES={
+ queued:{label:"Queued",badge:"badge-gray"},
+ cadence:{label:"In cadence",badge:"badge-blue"},
+ talking:{label:"Talking to assistant",badge:"badge-blue"},
+ warm:{label:"Warm — call them",badge:"badge-green"},
+ sold:{label:"Sold",badge:"badge-green"},
+ stopped:{label:"Stopped",badge:"badge-outline"}
+};
+let roster=[
+ {ref:"#R-1029",name:"Judy Blalock",est:"Water Heater",val:"$2,780",campId:1,stage:"warm",oppStatus:"ready",replied:true,wait:"1d 3h",next:"Your team calls her — urgent: unit making noise",conv:"R-1029"},
+ {ref:"#R-1042",name:"Maria Gonzalez",est:"AC Replacement",val:"$12,400",campId:1,stage:"warm",oppStatus:"needs_info",replied:true,wait:"2h 15m",next:"Roberto calls after 5 PM about financing",conv:"R-1042"},
+ {ref:"#R-1038",name:"Dave Kowalski",est:"AC Replacement",val:"$9,800",campId:1,stage:"warm",oppStatus:"ready",replied:true,wait:"5h 40m",next:"Roberto confirms install timing",conv:"R-1038"},
+ {ref:"#R-1051",name:"Priya Patel",est:"Water Heater",val:"$2,350",campId:1,stage:"talking",replied:true,wait:"—",next:"Replied 20 min ago — assistant answering a question about haul-away",conv:"R-1051"},
+ {ref:"#R-1033",name:"Tom Reyes",est:"Furnace Repair",val:"$1,180",campId:1,stage:"cadence",replied:false,wait:"—",next:"Text 2 of 5 sent · next text Thu 9:00 AM",conv:"R-1033"},
+ {ref:"#R-1032",name:"Angela Wu",est:"Duct Repair",val:"$3,400",campId:1,stage:"cadence",replied:false,wait:"—",next:"Text 1 of 5 sent · next text Tue 10:00 AM",conv:null},
+ {ref:"#R-1036",name:"Marcus Boyd",est:"Duct Repair",val:"$5,100",campId:1,stage:"cadence",replied:false,wait:"—",next:"Text 3 of 5 sent · next text Fri 4:00 PM",conv:null},
+ {ref:"#R-1055",name:"Sofia Ramos",est:"Water Heater",val:"$2,600",campId:1,stage:"queued",replied:false,wait:"—",next:"First text tomorrow 9:00 AM (backlog day 2 of 3)",conv:null},
+ {ref:"#R-1056",name:"Carla Espinoza",est:"Duct Repair",val:"$4,250",campId:1,stage:"queued",replied:false,wait:"—",next:"First text Thu 9:00 AM (backlog day 3 of 3)",conv:null},
+ {ref:"#R-1020",name:"Aaron Schultz",est:"AC Replacement",val:"$9,450",campId:1,stage:"sold",replied:true,wait:"—",next:"Booked with Roberto 🎉 — counted in recovered revenue",conv:null},
+ {ref:"#R-1046",name:"Sam Nguyen",est:"Furnace Repair",val:"$960",campId:1,stage:"stopped",replied:true,wait:"—",next:"Said stop — never contacted again",conv:"R-1046"},
+ {ref:"#R-1018",name:"Dana Whitfield",est:"Furnace Repair",val:"$1,310",campId:1,stage:"stopped",replied:false,wait:"—",next:"All 5 texts sent, no reply — resting until re-entry window",conv:null},
+ {ref:"#R-1040",name:"Greenline Offices LLC",est:"AC Replacement",val:"$28,400",campId:2,stage:"cadence",replied:false,wait:"—",next:"Campaign stopped — frozen at text 2 of 3 until you resume",conv:null},
+ {ref:"#R-1041",name:"Taco Bueno #114",est:"Duct Repair",val:"$7,300",campId:2,stage:"cadence",replied:false,wait:"—",next:"Campaign stopped — frozen at text 1 of 3 until you resume",conv:null}
+];
+function rosterOutcome(r){
+  if(!r.replied)return ["No answer","badge-gray"];
+  if(r.stage==="warm"||r.stage==="sold")return ["Completed","badge-green"];
+  if(r.stage==="talking")return ["In progress","badge-blue"];
+  return ["Stopped","badge-outline"];
+}
+
+/* ================= Service requests (production-shaped, lead capture) ================= */
+const SRSTATUS={needs_info:["Needs Info","badge-amber"],ready:["Ready to Schedule","badge-blue"],scheduled:["Scheduled","badge-blue"],completed:["Completed","badge-green"],canceled:["Canceled","badge-red"]};
+const srRows=[
+ {ref:"#SR-2214",name:"Robert Casey",phone:"(512) 555-0193",job:"AC Repair",status:"needs_info",channel:"Missed-call SMS",lead:"Google Ads",created:"Today 11:42 AM",wait:"18m"},
+ {ref:"#SR-2213",name:"Karen Boyle",phone:"(512) 555-0186",job:"AC Repair",status:"ready",channel:"Voice agent",lead:"Google Business",created:"Today 11:25 AM",wait:"35m"},
+ {ref:"#SR-2212",name:"Luis Herrera",phone:"(512) 555-0171",job:"Duct Cleaning",status:"needs_info",channel:"Chatbot",lead:"Website",created:"Today 10:50 AM",wait:"1h 10m"},
+ {ref:"#SR-2211",name:"Emily Tran",phone:"(512) 555-0164",job:"Furnace Tune-up",status:"scheduled",channel:"Booking form",lead:"Website",created:"Today 10:00 AM",wait:"2h"},
+ {ref:"#SR-2208",name:"Hank Porter",phone:"(512) 555-0158",job:"Thermostat Install",status:"completed",channel:"Voice agent",lead:"Referral",created:"Yesterday 3:10 PM",wait:"—"}
+];
+/* Production intents (latest main: CategoryBadge.tsx) + the new Rehash intent.
+   Third flag = dashed border (production's Pending / In Progress treatment). */
+const INTENTS={
+ service_request:["Service Request","badge-blue"],
+ customer_support:["Customer Support","badge-green"],
+ spam:["Spam","badge-red"],
+ other:["Other","badge-gray"],
+ pending:["Pending","badge-outline",true],
+ rehash:["Rehash","badge-blue"]
+};
+/* Production outcomes (CONVERSATION_OUTCOME_LABELS + OUTCOME_PRESENTATION) + two rehash-only outcomes */
+const OUTCOMES={
+ in_progress:["In Progress","badge-outline",true],
+ completed:["Completed","badge-blue"],
+ abandoned_early:["Instant Drop-off","badge-amber"],
+ abandoned_mid:["Abandoned","badge-amber"],
+ transferred:["Transferred","badge-green"],
+ transfer_failed:["Transfer Failed","badge-red"],
+ stopped:["Stopped","badge-gray"],
+ no_answer:["No Answer","badge-gray"]
+};
+function bdg(map,key){const p=map[key]||["—","badge-gray"];return `<span class="badge ${p[1]}"${p[2]?' style="border-style:dashed"':""}>${p[0]}</span>`}
+const leadConvs=[
+ {ref:"#C-8841",name:"Karen Boyle",channel:"Voice",intent:"service_request",outcome:"transferred",created:"Today 11:20 AM",last:"35m ago"},
+ {ref:"#C-8840",name:"Luis Herrera",channel:"Chat",intent:"service_request",outcome:"in_progress",created:"Today 10:45 AM",last:"1h 10m ago"},
+ {ref:"#C-8836",name:"Nina Alvarado",channel:"Chat",intent:"customer_support",outcome:"completed",created:"Yesterday 4:12 PM",last:"Yesterday"},
+ {ref:"#C-8833",name:"(512) 555-0007",channel:"Voice",intent:"pending",outcome:"abandoned_early",created:"Yesterday 9:03 AM",last:"Yesterday"},
+ {ref:"#C-8829",name:"Unknown caller",channel:"Voice",intent:"spam",outcome:"completed",created:"Mon 2:40 PM",last:"Mon"}
+];
+
+/* ================= Global state ================= */
+let iaOption="one", curPage="rehash", curTab="overview";
+let oppTab="all", oppStatusTab="all", rlTab="warm", rlCampFilter="all", convTab="all", convCampFilter="all";
+let convFilters={
+ intents:{service_request:true,customer_support:true,spam:true,other:true,pending:true,rehash:true},
+ channels:{Voice:true,Chat:true,SMS:true},
+ outcomes:{in_progress:true,completed:true,abandoned_early:true,abandoned_mid:true,transferred:true,transfer_failed:true,stopped:true},
+ noAnswer:false};
+
+/* ================= Rehash section tabs ================= */
+function showTab(id){
+  curTab=id;
+  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active",t.dataset.tab===id));
+  ["overview","segments","campaigns"].forEach(s=>document.getElementById("tab-"+s).hidden=(s!==id));
+  if(id==="segments")renderSegList();
+  if(id==="campaigns")renderCampaigns();
+  if(id==="overview"){renderGlance();renderPointer()}
+}
+
+/* ================= Overview ================= */
+function statusBadge(c){
+  return c.status==="active"?'<span class="badge badge-blue"><span class="dot"></span>Active</span>'
+   :c.status==="paused"?'<span class="badge badge-amber" title="Frozen in place — no one new starts, no one mid-sequence gets messages until you resume">Stopped</span>'
+   :c.status==="archived"?'<span class="badge badge-outline">Archived</span>'
+   :'<span class="badge badge-gray">Draft</span>'}
+function renderGlance(){
+  document.getElementById("campGlance").innerHTML=campaigns.map(c=>`
+   <tr class="rowbtn" onclick="openCampDrawer(${c.id})">
+     <td class="t-name">${c.name}</td>
+     <td class="t-muted">${c.segIds.map(i=>segments.find(s=>s.id===i)?.name).filter(Boolean).join(" + ")}</td>
+     <td class="t-num">${c.status==="draft"?"—":c.stats.cad}</td>
+     <td class="t-num">${c.status==="draft"?"—":c.stats.rep}</td>
+     <td class="t-num">${c.status==="draft"?"—":c.stats.hand}</td>
+     <td>${statusBadge(c)}</td>
+   </tr>`).join("");
+}
+function renderPointer(){
+  const warmN=roster.filter(r=>r.stage==="warm").length;
+  const one=iaOption==="one";
+  const label=one?"Opportunities":"Rehashed Leads", target=one?"opps":"rl";
+  document.getElementById("warmPointer").innerHTML=`
+   <div class="card" style="padding:16px 18px;display:flex;align-items:center;gap:14px;border-color:var(--green-bd);background:var(--green-bg)">
+     <div style="font-size:22px">🔔</div>
+     <div style="flex:1">
+       <div style="font-weight:600;color:var(--green-fg)">${warmN} rehashed leads are waiting on your team</div>
+       <div style="font-size:12.5px;color:var(--green-fg);opacity:.85">The assistant handed them off — they're in <b>${label}</b>${one?" alongside everything else that needs a human":""}. Nothing to work here.</div>
+     </div>
+     <button class="btn btn-primary" onclick="${one?"setOppSource('rehash');":""}showPage('${target}')">Open ${label} →</button>
+   </div>`;
+}
+
+/* ================= Segments list + drawer ================= */
+function renderSegList(){
+  document.getElementById("segListRows").innerHTML=segments.map(s=>{
+    const used=segUsedBy(s.id);
+    return `<tr class="rowbtn" onclick="openSegDrawer(${s.id})">
+     <td class="t-name">${s.name}</td>
+     <td class="t-muted">${summarize(s.filters)}</td>
+     <td><span class="badge badge-blue t-num">${matchRows(s.filters).length} now</span></td>
+     <td class="t-muted">${used.length?used.join(", "):"—"}</td>
+     <td><span style="color:var(--brand);font-weight:500;font-size:12.5px">Edit →</span></td>
+   </tr>`}).join("");
+}
+let editingSegId=null,tempSeg=null;
+function openSegDrawer(id){
+  editingSegId=id;
+  const s=id?segments.find(x=>x.id===id):null;
+  tempSeg=s?JSON.parse(JSON.stringify(s.filters))
+          :{mode:"all",include:[R("status","is","Open"),R("created","more than","30")],exclude:[R("tag","is","no-AI")]};
+  document.getElementById("segName").value=s?s.name:"";
+  document.getElementById("segDrawerKicker").textContent=s?"EDIT SEGMENT":"NEW SEGMENT";
+  renderRuleUI();
+  openDrawerEl("segDrawer");
+}
+function setMode(m){tempSeg.mode=m;renderRuleUI()}
+function addRule(kind){
+  tempSeg[kind].push(kind==="include"?R("jobtype","is","AC Replacement"):R("tag","is","no-AI"));
+  renderRuleUI();
+}
+function removeRule(kind,i){tempSeg[kind].splice(i,1);renderRuleUI()}
+function ruleChanged(kind,i,part,val){
+  const r=tempSeg[kind][i];
+  if(part==="field"){r.field=val;r.op=FIELDS[val].ops[0];r.value=fieldVals(val)[0][0]}
+  else if(part==="op")r.op=val;
+  else r.value=val;
+  renderRuleUI();
+}
+function ruleRow(r,i,kind,conn){
+  const f=FIELDS[r.field];
+  return `<div class="rule">
+    <span class="conn">${i===0?"":conn}</span>
+    <select onchange="ruleChanged('${kind}',${i},'field',this.value)" aria-label="Field">
+      ${Object.entries(FIELDS).map(([k,v])=>`<option value="${k}" ${k===r.field?"selected":""}>${v.label}</option>`).join("")}
+    </select>
+    <select onchange="ruleChanged('${kind}',${i},'op',this.value)" aria-label="Condition">
+      ${f.ops.map(o=>`<option ${o===r.op?"selected":""}>${o}</option>`).join("")}
+    </select>
+    <select onchange="ruleChanged('${kind}',${i},'value',this.value)" aria-label="Value">
+      ${fieldVals(r.field).map(v=>`<option value="${v[0]}" ${String(r.value)===v[0]?"selected":""}>${v[1]}</option>`).join("")}
+    </select>
+    <button class="icon-btn tiny" onclick="removeRule('${kind}',${i})" title="Remove rule" aria-label="Remove rule">✕</button>
+  </div>`}
+function renderRuleUI(){
+  segPage=1;
+  document.getElementById("modeAll").classList.toggle("on",tempSeg.mode==="all");
+  document.getElementById("modeAny").classList.toggle("on",tempSeg.mode==="any");
+  const conn=tempSeg.mode==="any"?"OR":"AND";
+  document.getElementById("incRules").innerHTML=tempSeg.include.map((r,i)=>ruleRow(r,i,"include",conn)).join("")||'<div class="hint" style="padding:6px 0">No rules yet — every estimate is included.</div>';
+  document.getElementById("excRules").innerHTML=tempSeg.exclude.map((r,i)=>ruleRow(r,i,"exclude","OR")).join("")||'<div class="hint" style="padding:6px 0">No exclusions.</div>';
+  renderPreview();
+}
+let segPage=1;
+const SEG_PAGE_SIZE=25;
+function renderPreview(){
+  const all=matchConditions(tempSeg);
+  const excN=all.filter(e=>e.excluded).length;
+  document.getElementById("segCount").textContent=all.length-excN;
+  const totalPages=Math.max(1,Math.ceil(all.length/SEG_PAGE_SIZE));
+  if(segPage>totalPages)segPage=totalPages;
+  const start=(segPage-1)*SEG_PAGE_SIZE;
+  const pageRows=all.slice(start,start+SEG_PAGE_SIZE);
+  document.getElementById("segMini").innerHTML=(pageRows.map(e=>{
+    const n=e.name.replace(/'/g,"\\'");
+    return e.excluded
+     ?`<div class="mini-row exc-row" title="Excluded from rehashing${e.excludeReason?": "+e.excludeReason.toLowerCase():""}">
+        <span class="mn">${e.name}</span>
+        <span class="md">${e.job} · ${money(e.amt)} · ${e.age}d</span>
+        <span class="badge badge-red">Excluded</span>
+        <button class="icon-btn tiny" title="Include in rehashing again" aria-label="Include ${e.name} in rehashing again" onclick="restoreExc('${n}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>
+       </div>`
+     :`<div class="mini-row">
+        <span class="mn">${e.name}</span>
+        <span class="md">${e.job} · ${money(e.amt)} · ${e.age}d</span>
+        <button class="icon-btn tiny" title="Exclude from rehashing" aria-label="Exclude ${e.name}" onclick="openExc('${n}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><line x1="5.6" y1="5.6" x2="18.4" y2="18.4"/></svg></button>
+       </div>`}).join("")||'<div class="empty">No estimates match these rules. Loosen a rule to see who qualifies.</div>')
+   +(all.length?`<div class="mini-more" style="display:flex;align-items:center;gap:10px">
+      <span>Showing ${start+1}–${Math.min(start+SEG_PAGE_SIZE,all.length)} of ${all.length}${excN?` · ${excN} excluded (crossed out)`:""}</span>
+      <span style="margin-left:auto;display:flex;gap:6px">
+        <button class="btn btn-outline btn-sm" ${segPage<=1?"disabled":""} onclick="segPage--;renderPreview()">Prev</button>
+        <button class="btn btn-outline btn-sm" ${segPage>=totalPages?"disabled":""} onclick="segPage++;renderPreview()">Next</button>
+      </span></div>`:"");
+}
+function restoreExc(name){
+  const e=estimates.find(x=>x.name===name);
+  if(e){e.excluded=false;e.excludeReason=null}
+  const r=roster.find(x=>x.name===name);
+  if(r&&r.stage==="stopped"&&r.next.startsWith("Excluded by you")){r.stage="cadence";r.next="Back in rotation — next text will be scheduled"}
+  refreshAll();
+  toast(`${name} is back in rehashing — they'll be worked as soon as they match a campaign's segment`);
+}
+function saveSegment(){
+  const name=document.getElementById("segName").value.trim()||"Untitled segment";
+  if(editingSegId){const s=segments.find(x=>x.id===editingSegId);s.name=name;s.filters=tempSeg}
+  else segments.push({id:nextSegId++,name,filters:tempSeg});
+  closeAllDrawers();showPage("rehash");showTab("segments");
+  toast(`Segment "${name}" saved — ${matchRows(tempSeg).length} estimates match right now`);
+}
+
+/* ================= Sold / exclude ================= */
+let excTarget=null;
+function markSold(name){
+  const e=estimates.find(x=>x.name===name);if(e)e.status="sold";
+  const r=roster.find(x=>x.name===name);
+  if(r){r.stage="sold";r.next="Marked sold by you — assistant stopped";}
+  refreshAll();
+  toast(`${name} marked sold — the assistant stopped following up. Nice one! 🎉`);
+}
+function openExc(name){excTarget=name;document.getElementById("excName").textContent=name;document.getElementById("excModal").classList.add("open")}
+function closeExc(){document.getElementById("excModal").classList.remove("open")}
+function confirmExc(){
+  const reason=document.querySelector('input[name=excR]:checked').value;
+  const e=estimates.find(x=>x.name===excTarget);
+  if(e){e.excluded=true;e.excludeReason=reason}
+  const r=roster.find(x=>x.name===excTarget);
+  if(r){r.stage="stopped";r.next=`Excluded by you — ${reason.toLowerCase()}`}
+  closeExc();refreshAll();
+  toast(`${excTarget} excluded from rehash (${reason.toLowerCase()}) — the assistant won't text them again`);
+}
+function refreshAll(){
+  if(tempSeg&&document.getElementById("segDrawer").classList.contains("open"))renderPreview();
+  renderSegList();renderCampaigns();renderGlance();renderPointer();
+  if(curPage==="opps")renderOppsPage();
+  if(curPage==="rl")renderRLPage();
+  if(curPage==="conv")renderConvPage();
+}
+
+/* ================= Campaigns table ================= */
+const pauseIcon='<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>';
+const playIcon='<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg>';
+const archiveIcon='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="5" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></svg>';
+const publishIcon='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 10 7-7 7 7"/><path d="M12 3v14"/><path d="M5 21h14"/></svg>';
+function actIconBtn(title,handler,icon,disabled){
+  return `<button class="icon-btn tiny" style="width:28px;height:28px" title="${title}" aria-label="${title}" ${disabled?'disabled style="width:28px;height:28px;opacity:.35;cursor:not-allowed"':""} onclick="event.stopPropagation();${disabled?"":handler}">${icon}</button>`}
+function campActions(c){
+  if(c.status==="active")return actIconBtn("Stop campaign — freezes it in place",`askPause(${c.id})`,pauseIcon)+actIconBtn("Archive campaign",`archiveCamp(${c.id})`,archiveIcon);
+  if(c.status==="paused")return actIconBtn("Resume campaign",`resumeCamp(${c.id})`,playIcon)+actIconBtn("Archive campaign",`archiveCamp(${c.id})`,archiveIcon);
+  if(c.status==="draft")return actIconBtn(c.blocked?("Can't publish yet: "+c.blocked):"Publish campaign",`publishCamp(${c.id})`,publishIcon,!!c.blocked)+actIconBtn("Archive campaign",`archiveCamp(${c.id})`,archiveIcon);
+  return '<span class="t-muted">—</span>'}
+function pauseBtn(c){
+  if(c.status==="draft"||c.status==="archived")return "";
+  return c.status==="active"
+   ?`<button class="icon-btn" title="Stop campaign — freezes it in place" aria-label="Stop ${c.name}" onclick="event.stopPropagation();askPause(${c.id})">${pauseIcon}</button>`
+   :`<button class="icon-btn" title="Resume campaign" aria-label="Resume ${c.name}" onclick="event.stopPropagation();resumeCamp(${c.id})">${playIcon}</button>`}
+function matchIncOnly(f){return estimates.filter(e=>
+  f.include.length?(f.mode==="any"?f.include.some(r=>evalRule(e,r)):f.include.every(r=>evalRule(e,r))):true)}
+function excludedCount(c){
+  const inSet=new Set(),allSet=new Set();
+  c.segIds.forEach(id=>{const s=segments.find(x=>x.id===id);if(!s)return;
+    matchRows(s.filters).forEach(e=>inSet.add(e.name));
+    matchIncOnly(s.filters).forEach(e=>allSet.add(e.name))});
+  let n=0;allSet.forEach(x=>{if(!inSet.has(x))n++});return n}
+function renderCampaigns(){
+  document.getElementById("campRows").innerHTML=campaigns.map(c=>{
+    const segs=c.segIds.map(i=>segments.find(s=>s.id===i)).filter(Boolean);
+    const arch=c.status==="archived";
+    return `<tr class="rowbtn" ${arch?'style="opacity:.55"':""} onclick="openCampDrawer(${c.id})">
+      <td class="t-name">${c.name}${c.blocked?' <span title="'+c.blocked+'">🔒</span>':""}</td>
+      <td>${segs.map(s=>`<span class="chip" style="margin:1px 2px 1px 0">${s.name} · ${matchRows(s.filters).length}</span>`).join("")}</td>
+      <td class="t-muted">${c.rhythm}</td>
+      <td class="t-muted">Reply · sold · "stop"</td>
+      <td class="t-muted">${c.reentry}</td>
+      <td>${statusBadge(c)}</td>
+      <td class="t-num">${c.status==="draft"?"—":`<span style="color:var(--brand);font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:2px" title="See who's being rehashed" onclick="event.stopPropagation();showClientsFor(${c.id})">${c.stats.cad}</span>`}</td>
+      <td class="t-num">${c.status==="draft"?"—":c.stats.rep}</td>
+      <td class="t-num">${c.status==="draft"?"—":c.stats.hand}</td>
+      <td class="t-num"><span title="Left out by your rules: no-AI tags, manual exclusions and opt-outs">${excludedCount(c)}</span></td>
+      <td><div style="display:flex;gap:4px">${campActions(c)}</div></td>
+    </tr>`}).join("")||'<tr><td colspan="11"><div class="empty">No campaigns yet — create one from a segment.</div></td></tr>';
+}
+let pauseTarget=null;
+function askPause(id){pauseTarget=id;document.getElementById("pauseTitle").textContent=`Stop "${campaigns.find(c=>c.id===id).name}"?`;document.getElementById("pauseModal").classList.add("open")}
+function closePauseModal(){document.getElementById("pauseModal").classList.remove("open")}
+function confirmPause(){
+  const c=campaigns.find(x=>x.id===pauseTarget);c.status="paused";
+  closePauseModal();refreshAll();
+  if(document.getElementById("campDrawer").classList.contains("open"))openCampDrawer(c.id);
+  toast(`${c.name} stopped — nothing sends until you resume`);
+}
+function resumeCamp(id){
+  const c=campaigns.find(x=>x.id===id);c.status="active";
+  refreshAll();
+  if(document.getElementById("campDrawer").classList.contains("open"))openCampDrawer(id);
+  toast(`${c.name} resumed — ${c.stats.cad} estimates pick up where they left off`);
+}
+function archiveCamp(id){
+  const c=campaigns.find(x=>x.id===id);c.status="archived";
+  refreshAll();
+  if(document.getElementById("campDrawer").classList.contains("open"))closeAllDrawers();
+  toast(`${c.name} archived — its conversations stay in Conversations, and its segment is free to reuse`);
+}
+function publishCamp(id){
+  const c=campaigns.find(x=>x.id===id);if(c.blocked){toast("Can't publish yet — "+c.blocked);return}
+  c.status="active";refreshAll();
+  toast(`${c.name} is live — it will pick up estimates as they match`);
+}
+
+/* ================= Campaign drawer ================= */
+function openCampDrawer(id){
+  const c=campaigns.find(x=>x.id===id);
+  const segs=c.segIds.map(i=>segments.find(s=>s.id===i)).filter(Boolean);
+  document.getElementById("cdName").textContent=c.name;
+  document.getElementById("cdBadges").innerHTML=statusBadge(c);
+  document.getElementById("cdBody").innerHTML=`
+   <div class="dsec"><h4>Audience</h4>
+     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">${segs.map(s=>`<span class="chip">${s.name} · ${matchRows(s.filters).length} now</span>`).join("")}</div>
+     <p class="hint">Estimates leave the follow-up the moment they stop matching — e.g. when marked sold.</p>
+     <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="closeAllDrawers();showClientsFor(${c.id})">See who's being rehashed →</button></div>
+   <div class="dsec"><h4>Follow-up rhythm</h4>
+     <dl class="dl"><dt>Cadence</dt><dd>${c.rhythm} · business hours only</dd><dt>Re-entry</dt><dd>${c.reentry}</dd></dl></div>
+   <div class="dsec"><h4>What the assistant can bring up</h4>
+     <div style="display:flex;flex-direction:column;gap:5px;font-size:13px">
+       ${TOPICS.filter(t=>c.topics&&c.topics[t.id]).map(t=>`<div>✓ ${t.label}</div>`).join("")||'<div class="t-muted">Just answers questions — no extra topics</div>'}
+     </div>
+     <dl class="dl" style="margin-top:11px"><dt>Tone</dt><dd>${(TONES.find(x=>x[0]===c.tone)||["","—"])[1]}</dd>${c.guidance?`<dt>Your note</dt><dd>${c.guidance}</dd>`:""}</dl></div>
+   <div class="dsec"><h4>Always &amp; never (built in)</h4>
+     <dl class="dl">
+       <dt>Discounts</dt><dd>Never — hardwired</dd>
+       <dt>Payment amounts</dt><dd>Never quotes a specific $/month</dd>
+       <dt>Answers</dt><dd>Only from the estimate — never invents</dd>
+       <dt>Identity</dt><dd>Texts as your company; says it's automated if asked</dd>
+       <dt>Closing</dt><dd>Hands warm leads to your team — never closes</dd>
+     </dl></div>
+   <div class="dsec"><h4>Stops for a customer when</h4>
+     <div style="display:flex;flex-direction:column;gap:7px">
+       <div class="lockrow" style="color:var(--text-2);padding:0">✓ Your assistant hands them off as a warm lead</div>
+       <div class="lockrow" style="color:var(--text-2);padding:0">✓ The estimate is marked sold or lost</div>
+       <div class="lockrow" style="color:var(--text-2);padding:0">✓ They ask you to stop — in any wording</div>
+       <div class="lockrow" style="color:var(--text-2);padding:0">✓ You exclude them from rehashing</div>
+       <div class="lockrow" style="color:var(--text-2);padding:0">✓ All follow-ups have been sent</div>
+     </div></div>
+   ${c.blocked?`<div class="dsec"><h4>Launch blocker</h4><div class="block-note">🔒 ${c.blocked}</div></div>`:""}
+   <div class="dsec"><h4>Performance</h4>
+     <div style="display:flex;gap:22px;font-variant-numeric:tabular-nums">
+       <div><div style="font-size:20px;font-weight:700">${c.stats.cad}</div><div class="t-muted">in cadence</div></div>
+       <div><div style="font-size:20px;font-weight:700">${c.stats.rep}</div><div class="t-muted">replies</div></div>
+       <div><div style="font-size:20px;font-weight:700">${c.stats.hand}</div><div class="t-muted">handoffs</div></div>
+     </div></div>`;
+  document.getElementById("cdFooter").innerHTML=`
+    ${pauseBtn(c)}
+    <button class="btn btn-outline" onclick="closeAllDrawers()" style="margin-left:auto">Close</button>
+    <button class="btn btn-primary" onclick="openWizard(${c.id})"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>Edit campaign</button>`;
+  openDrawerEl("campDrawer");
+}
+
+/* ================= "See who's being rehashed" cross-link ================= */
+function showClientsFor(campId){
+  if(iaOption==="one"){oppTab="rehash";oppStatusTab="cadence";showPage("opps")}
+  else{rlCampFilter=campId;rlTab="cadence";showPage("rl")}
+}
+
+/* ================= Drawers: conversation + lead ================= */
+function estActions(name){
+  const n=name.replace(/'/g,"\\'");
+  return `<div style="display:flex;gap:8px;margin-top:11px;flex-wrap:wrap">
+    <button class="btn btn-outline btn-sm" onclick="toast('Would open estimate in your FSM (deep link)')">Open in your FSM ↗</button>
+    <button class="btn btn-outline btn-sm" onclick="markSold('${n}');closeAllDrawers()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Mark sold</button>
+    <button class="btn btn-outline btn-sm" onclick="openExc('${n}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><line x1="5.6" y1="5.6" x2="18.4" y2="18.4"/></svg>Don't rehash</button>
+  </div>`}
+function chatHtml(chat){
+  return `<div class="chat">${chat.map(m=>m[0]==="sys"?`<div class="sysline">${m[1]}</div>`:`<div class="msg ${m[0]}">${m[1]}<span class="mt">${m[2]}</span></div>`).join("")}</div>`}
+function openConv(id){openLeadDrawer(conversations[id].name)}
+function openLeadDrawer(name){
+  const r=roster.find(x=>x.name===name);
+  const e=estimates.find(x=>x.name===name);
+  const conv=r&&r.conv?conversations[r.conv]:null;
+  const camp=r?campaigns.find(c=>c.id===r.campId):null;
+  const st=r?STAGES[r.stage]:null;
+  document.getElementById("dRef").textContent=(r?r.ref:(conv?conv.ref:"#—"));
+  document.getElementById("dName").textContent=name;
+  document.getElementById("dBadges").innerHTML=
+    `<span class="badge badge-outline">SMS</span><span class="badge badge-blue">Rehash</span>${st?`<span class="badge ${st.badge}">${r.stage==="warm"?'<span class="dot"></span>':""}${st.label}</span>`:""}`;
+  const phone=conv?conv.phone:(e?e.phone:"—");
+  document.getElementById("dBody").innerHTML=`
+   <div class="dsec"><h4>Contact details</h4>
+     <dl class="dl"><dt>Phone</dt><dd>${phone}</dd>${conv&&conv.addr?`<dt>Service address</dt><dd>${conv.addr}</dd>`:""}</dl></div>
+   <div class="dsec"><h4>Estimate</h4>
+     <dl class="dl">
+       <dt>Job</dt><dd>${conv?conv.estimate.job:(e?e.job:r?r.est:"—")}</dd>
+       <dt>Amount</dt><dd>${conv?conv.estimate.amt:(r?r.val:e?money(e.amt):"—")}</dd>
+       <dt>Sent</dt><dd>${conv?conv.estimate.age+" ago":(e?e.age+" days ago":"—")}</dd>
+       <dt>Status</dt><dd>${e?(e.status==="sold"?"Sold":e.excluded?"Excluded":"Open"):"Open"}</dd>
+     </dl>
+     ${estActions(name)}</div>
+   ${r?`<div class="dsec"><h4>Rehash status</h4>
+     <dl class="dl"><dt>Campaign</dt><dd>${camp?camp.name:"—"}</dd><dt>Stage</dt><dd>${st.label}</dd><dt>What's next</dt><dd>${r.next}</dd></dl></div>`:""}
+   ${conv&&conv.summary?`<div class="dsec"><h4>Summary</h4><div class="sumbox">${conv.summary}</div></div>`:""}
+   ${conv&&conv.handoff?`<div class="dsec"><h4>Handoff notification — what your team received</h4>
+     <div class="notif"><div class="nh">🔔 Warm lead · sent to your notification contacts</div><div class="npv">${conv.handoff}</div></div></div>`:""}
+   ${conv?`<div class="dsec"><h4>Transcript</h4>${chatHtml(conv.chat)}</div>`
+        :`<div class="dsec"><h4>Transcript</h4><div class="sumbox">No messages exchanged yet${r&&r.stage==="queued"?" — first text is scheduled":""}. Outbound texts will appear here.</div></div>`}`;
+  openDrawerEl("convDrawer");
+}
+
+/* ================= Page: Opportunities (A) / Service Requests (B) ================= */
+function setOppSource(k){
+  oppTab=k;
+  oppStatusTab=k==="rehash"?"warm":"all";
+  renderOppsPage();
+}
+function renderOppsPage(){
+  const root=document.getElementById("oppsRoot");
+  const one=iaOption==="one";
+  const searchbar=`
+   <div class="toolbar">
+     <div class="searchbox"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+       <input placeholder="${one?"Search opportunities...":"Search requested jobs..."}" aria-label="Search" oninput="toast('Search is decorative in this prototype')"></div>
+     <button class="btn btn-outline btn-sm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>Filter</button>
+     <button class="btn btn-outline btn-sm" onclick="toast('Would export CSV')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export</button>
+   </div>`;
+  if(one){
+    const captured=srRows.map(s=>({ref:s.ref,name:s.name,phone:s.phone,job:s.job,status:s.status,src:s.channel,value:null,wait:s.wait,rehash:false}));
+    const rehashAll=roster.map(r=>({
+      ref:r.ref,name:r.name,phone:(estimates.find(e=>e.name===r.name)||{}).phone||"—",
+      job:r.est,stage:r.stage,src:"Rehash SMS",value:r.val,wait:r.wait,rehash:true}));
+    const srcTabs=[["all","All",captured.length+rehashAll.length],["lead","Captured Leads",captured.length],["rehash","Rehashed Leads",rehashAll.length]];
+    const SR_SUB=[["all","All"],["needs_info","Needs Info"],["ready","Ready to Schedule"],["scheduled","Scheduled"],["completed","Completed"],["canceled","Canceled"]];
+    const stageIs=(o,k)=>k==="cadence"?(o.stage==="cadence"||o.stage==="queued"):o.stage===k;
+    let rows,subHtml="";
+    if(oppTab==="lead"){
+      rows=captured.filter(s=>oppStatusTab==="all"||s.status===oppStatusTab);
+      subHtml=SR_SUB.map(([k,l])=>{
+        const n=captured.filter(s=>k==="all"||s.status===k).length;
+        return `<button class="btn btn-sm ${oppStatusTab===k?"btn-primary":"btn-outline"}" onclick="oppStatusTab='${k}';renderOppsPage()">${l} · ${n}</button>`}).join("");
+    }else if(oppTab==="rehash"){
+      rows=rehashAll.filter(o=>stageIs(o,oppStatusTab));
+      subHtml=RL_TABS.map(([k,l])=>{
+        const n=rehashAll.filter(o=>stageIs(o,k)).length;
+        return `<button class="btn btn-sm ${oppStatusTab===k?"btn-primary":"btn-outline"}" onclick="oppStatusTab='${k}';renderOppsPage()">${l} · ${n}</button>`}).join("");
+    }else{
+      rows=captured.concat(rehashAll);
+    }
+    const statusCell=o=>{
+      if(!o.rehash)return `<span class="badge ${SRSTATUS[o.status][1]}">${SRSTATUS[o.status][0]}</span>`;
+      const st=STAGES[o.stage];
+      return `<span class="badge ${st.badge}">${o.stage==="warm"||o.stage==="talking"?'<span class="dot"></span>':""}${st.label}</span>`};
+    root.innerHTML=`
+     <div class="page-h"><div><h1>Opportunities</h1><p>Every chance to win a job, from every agent — captured leads and rehashed estimates in one queue.</p></div></div>
+     <nav class="utabs" role="tablist">${srcTabs.map(([k,l,n])=>`<button class="utab ${oppTab===k?"active":""}" role="tab" onclick="setOppSource('${k}')">${l}<span class="cnt">${n}</span></button>`).join("")}</nav>
+     ${subHtml?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin:14px 0 0">${subHtml}</div>`:""}
+     <div class="toolbar">
+       <div class="searchbox"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+         <input placeholder="Search opportunities..." aria-label="Search" oninput="toast('Search is decorative in this prototype')"></div>
+       <button class="btn btn-outline btn-sm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>Filter</button>
+       <button class="btn btn-outline btn-sm" onclick="toast('Would export CSV')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export</button>
+     </div>
+     <div class="tablewrap"><table>
+      <thead><tr><th style="width:86px">Ref</th><th style="width:150px">Contact</th><th style="width:130px">Phone</th><th>Job Type</th><th style="width:170px">Status</th><th style="width:140px">Source</th><th style="width:90px">Value</th><th style="width:100px">Waiting</th></tr></thead>
+      <tbody>${rows.map(o=>`
+        <tr class="rowbtn" onclick="${o.rehash?`openLeadDrawer('${o.name.replace(/'/g,"\\'")}')`:`toast('Would open the service request drawer — unchanged from production')`}">
+          <td class="t-num t-muted">${o.ref}</td>
+          <td class="t-name">${o.name}</td>
+          <td class="t-num t-muted">${o.phone}</td>
+          <td class="t-muted">${o.job}</td>
+          <td>${statusCell(o)}</td>
+          <td><span class="badge badge-outline">${o.src}</span></td>
+          <td class="t-num">${o.value||'<span class="t-muted">—</span>'}</td>
+          <td class="t-muted">${o.wait&&o.wait!=="—"?"⏱ "+o.wait:"—"}</td>
+        </tr>`).join("")||'<tr><td colspan="8"><div class="empty">Nobody here right now.</div></td></tr>'}</tbody></table></div>
+     <div class="pagefoot">Showing ${rows.length} of ${captured.length+rehashAll.length} · every agent — today's and future ones — feeds this same queue.</div>`;
+  }else{
+    const counts=s=>srRows.filter(x=>x.status===s).length;
+    const tabs=[["all","All",srRows.length],["needs_info","Needs Info",counts("needs_info")],["ready","Ready to Schedule",counts("ready")],["scheduled","Scheduled",counts("scheduled")],["completed","Completed",counts("completed")],["canceled","Canceled",counts("canceled")]];
+    const rows=srRows.filter(s=>oppStatusTab==="all"||s.status===oppStatusTab);
+    root.innerHTML=`
+     <div class="page-h"><div><h1>Service Requests</h1><p>Manage incoming job requests from your customers</p></div></div>
+     <nav class="utabs" role="tablist">${tabs.map(([k,l,n])=>`<button class="utab ${oppStatusTab===k?"active":""}" role="tab" onclick="oppStatusTab='${k}';renderOppsPage()">${l}<span class="cnt">${n}</span></button>`).join("")}</nav>
+     ${searchbar}
+     <div class="tablewrap"><table>
+      <thead><tr><th style="width:86px">Ref</th><th style="width:150px">Contact</th><th style="width:130px">Phone</th><th>Job Type</th><th style="width:160px">Status</th><th style="width:140px">Channel</th><th style="width:130px">Lead Source</th><th style="width:130px">Created</th></tr></thead>
+      <tbody>${rows.map(s=>`
+        <tr class="rowbtn" onclick="toast('Would open the service request drawer — unchanged from production')">
+          <td class="t-num t-muted">${s.ref}</td>
+          <td class="t-name">${s.name}</td>
+          <td class="t-num t-muted">${s.phone}</td>
+          <td class="t-muted">${s.job}</td>
+          <td><span class="badge ${SRSTATUS[s.status][1]}">${SRSTATUS[s.status][0]}</span></td>
+          <td><span class="badge badge-outline">${s.channel}</span></td>
+          <td class="t-muted">${s.lead}</td>
+          <td class="t-muted">${s.created}</td>
+        </tr>`).join("")||'<tr><td colspan="8"><div class="empty">No requests with this status.</div></td></tr>'}</tbody></table></div>
+     <div class="pagefoot">Showing ${rows.length} of ${srRows.length} — exactly the production experience, untouched. Rehash lives in Rehashed Leads.</div>`;
+  }
+}
+
+/* ================= Page: Rehashed Leads (B) ================= */
+const RL_TABS=[["warm","Warm leads"],["talking","Talking to assistant"],["cadence","In cadence"],["sold","Sold"],["stopped","Stopped"]];
+function rlStageMatch(r,tab){return tab==="cadence"?(r.stage==="cadence"||r.stage==="queued"):r.stage===tab}
+function renderRLPage(){
+  const root=document.getElementById("rlRoot");
+  const counts=Object.fromEntries(RL_TABS.map(([k])=>[k,roster.filter(r=>rlStageMatch(r,k)&&(rlCampFilter==="all"||r.campId===rlCampFilter)).length]));
+  const campChips=[`<button class="btn btn-sm ${rlCampFilter==="all"?"btn-primary":"btn-outline"}" onclick="rlCampFilter='all';renderRLPage()">All campaigns</button>`]
+   .concat(campaigns.filter(c=>roster.some(r=>r.campId===c.id)).map(c=>
+    `<button class="btn btn-sm ${rlCampFilter===c.id?"btn-primary":"btn-outline"}" onclick="rlCampFilter=${c.id};renderRLPage()">${c.name}</button>`)).join("");
+  const rows=roster.filter(r=>rlStageMatch(r,rlTab)&&(rlCampFilter==="all"||r.campId===rlCampFilter));
+  root.innerHTML=`
+   <div class="page-h"><div><h1>Rehashed Leads</h1><p>Every estimate your rehash assistant is working. Warm leads need a call — the rest is the machine running.</p></div></div>
+   <nav class="utabs" role="tablist">${RL_TABS.map(([k,l])=>`<button class="utab ${rlTab===k?"active":""}" role="tab" onclick="rlTab='${k}';renderRLPage()">${l}<span class="cnt">${counts[k]}</span></button>`).join("")}</nav>
+   <div class="toolbar">
+     <div class="searchbox"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+       <input placeholder="Search rehashed leads..." aria-label="Search" oninput="toast('Search is decorative in this prototype')"></div>
+     <div style="display:flex;gap:6px;flex-wrap:wrap">${campChips}</div>
+   </div>
+   <div class="tablewrap"><table>
+    <thead><tr><th style="width:86px">Ref</th><th style="width:150px">Contact</th><th style="width:130px">Phone</th><th>Estimate</th><th style="width:90px">Value</th><th style="width:170px">Campaign</th><th>What's next</th></tr></thead>
+    <tbody>${rows.map(r=>{
+      const camp=campaigns.find(c=>c.id===r.campId);
+      return `<tr class="rowbtn" onclick="openLeadDrawer('${r.name.replace(/'/g,"\\'")}')">
+        <td class="t-num t-muted">${r.ref}</td>
+        <td class="t-name">${r.name}</td>
+        <td class="t-num t-muted">${(estimates.find(e=>e.name===r.name)||{}).phone||"—"}</td>
+        <td class="t-muted">${r.est}</td>
+        <td class="t-num">${r.val}</td>
+        <td class="t-muted">${camp?camp.name:"—"}</td>
+        <td class="t-muted">${r.next}</td>
+      </tr>`}).join("")||'<tr><td colspan="7"><div class="empty">Nobody in this stage right now.</div></td></tr>'}</tbody></table></div>
+   <div class="pagefoot">Showing ${rows.length} · click a lead for details and the thread. Threads with replies also appear in Conversations.</div>`;
+}
+
+/* ================= Page: Conversations (latest-main layout: Intent + Outcome; Option A adds the Rehash intent) ================= */
+function convRowsData(){
+  const one=iaOption==="one";
+  const lead=leadConvs.map(c=>({...c,rehash:false}));
+  if(!one)return lead; /* Option B: exactly production — no rehash rows */
+  const rehash=roster.filter(r=>r.stage!=="queued").map(r=>{
+    const e=estimates.find(x=>x.name===r.name);
+    return {ref:r.ref,name:r.name,channel:"SMS",intent:"rehash",campId:r.campId,
+      outcome:r.stage==="talking"?"in_progress":(r.stage==="warm"||r.stage==="sold")?"completed":(r.replied?"stopped":"no_answer"),
+      created:e?Math.max(1,e.age-3)+"d ago":"—",
+      last:r.wait!=="—"?r.wait+" ago":"—",
+      rehash:true};
+  });
+  return lead.concat(rehash);
+}
+function renderConvPage(){
+  const root=document.getElementById("convRoot");
+  const one=iaOption==="one";
+  const all=convRowsData();
+  const passes=c=>convFilters.intents[c.intent]&&convFilters.channels[c.channel]&&
+    (c.outcome==="no_answer"?convFilters.noAnswer:convFilters.outcomes[c.outcome])&&
+    (convCampFilter==="all"||(c.rehash&&c.campId===convCampFilter));
+  const inTab=c=>convTab==="all"||(convTab==="lead"?!c.rehash:c.rehash);
+  const visible=all.filter(c=>passes(c)&&inTab(c));
+  const tabCounts={all:all.filter(passes).length,lead:all.filter(c=>passes(c)&&!c.rehash).length,rehash:all.filter(c=>passes(c)&&c.rehash).length};
+  const hiddenN=all.filter(c=>c.outcome==="no_answer"&&convFilters.intents.rehash).length;
+  const activeFilters=Object.values(convFilters.intents).filter(v=>!v).length
+    +Object.values(convFilters.channels).filter(v=>!v).length
+    +Object.values(convFilters.outcomes).filter(v=>!v).length
+    +(convFilters.noAnswer?1:0)
+    +(convCampFilter!=="all"?1:0);
+  const intentKeys=Object.keys(INTENTS).filter(k=>one||k!=="rehash");
+  const outcomeKeys=Object.keys(OUTCOMES).filter(k=>k!=="no_answer"&&(one||(k!=="stopped")));
+  root.innerHTML=`
+   <div class="page-h"><div><h1>Conversations</h1><p>${one?"Review conversations across your AI agents — including estimate rehash.":"Review conversations across your AI agents."}</p></div></div>
+   ${one?`<nav class="utabs" role="tablist">${[["all","All"],["lead","Captured Leads"],["rehash","Rehashed Leads"]].map(([k,l])=>`<button class="utab ${convTab===k?"active":""}" role="tab" onclick="convTab='${k}';renderConvPage()">${l}<span class="cnt">${tabCounts[k]}</span></button>`).join("")}</nav>`:""}
+   <div class="toolbar" style="margin-top:${one?"14px":"18px"}">
+     <div class="searchbox"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+       <input placeholder="Search conversations..." aria-label="Search conversations" oninput="toast('Search is decorative in this prototype')"></div>
+     <button class="btn btn-outline btn-sm" onclick="toast('Would open the date range picker — unchanged from production')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Date range</button>
+     <div class="pop">
+       <button class="btn btn-outline btn-sm" onclick="document.getElementById('convPop').classList.toggle('open');event.stopPropagation()">
+         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>Filter
+         ${activeFilters?`<span class="badge badge-gray">${activeFilters}</span>`:""}
+       </button>
+       <div class="pop-menu" id="convPop" onclick="event.stopPropagation()">
+         <h5>Filters</h5>
+         <div class="grouplbl">Outcome</div>
+         ${outcomeKeys.map(k=>`<label><input type="checkbox" ${convFilters.outcomes[k]?"checked":""} onchange="convFilters.outcomes['${k}']=this.checked;renderConvPage()">${OUTCOMES[k][0]}</label>`).join("")}
+         <div class="grouplbl">Channel</div>
+         ${Object.keys(convFilters.channels).map(ch=>`<label><input type="checkbox" ${convFilters.channels[ch]?"checked":""} onchange="convFilters.channels['${ch}']=this.checked;renderConvPage()">${ch}</label>`).join("")}
+         <div class="grouplbl">Intent</div>
+         ${intentKeys.map(k=>`<label><input type="checkbox" ${convFilters.intents[k]?"checked":""} onchange="convFilters.intents['${k}']=this.checked;renderConvPage()">${INTENTS[k][0]}</label>`).join("")}
+         ${one?`<div class="grouplbl">Rehash</div>
+         <label><input type="checkbox" ${convFilters.noAnswer?"checked":""} onchange="convFilters.noAnswer=this.checked;renderConvPage()">Include threads with no client reply <span class="t-muted">(${hiddenN})</span></label>
+         <div class="grouplbl">Rehash campaign</div>
+         <label><input type="radio" name="convCamp" ${convCampFilter==="all"?"checked":""} onchange="convCampFilter='all';renderConvPage()">All campaigns</label>
+         ${campaigns.filter(c=>roster.some(r=>r.campId===c.id)).map(c=>`<label><input type="radio" name="convCamp" ${convCampFilter===c.id?"checked":""} onchange="convCampFilter=${c.id};renderConvPage()">${c.name}</label>`).join("")}`:""}
+       </div>
+     </div>
+     <button class="btn btn-outline btn-sm" onclick="toast('Would export CSV')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export</button>
+   </div>
+   <div class="tablewrap"><table>
+    <thead><tr><th style="width:86px">Ref</th><th>Contact</th><th style="width:90px">Channel</th><th style="width:150px">Intent</th><th style="width:140px">Outcome</th><th style="width:120px">Created</th><th style="width:110px">Last Activity</th></tr></thead>
+    <tbody>${visible.map(c=>`
+      <tr class="rowbtn" onclick="${c.rehash?`openLeadDrawer('${c.name.replace(/'/g,"\\'")}')`:`toast('Would open the conversation drawer — unchanged from production')`}">
+        <td class="t-num t-muted">${c.ref}</td>
+        <td class="t-name">${c.name}</td>
+        <td><span class="badge badge-outline">${c.channel}</span></td>
+        <td>${bdg(INTENTS,c.intent)}</td>
+        <td>${bdg(OUTCOMES,c.outcome)}</td>
+        <td class="t-muted">${c.created}</td>
+        <td class="t-muted">${c.last}</td>
+      </tr>`).join("")||'<tr><td colspan="7"><div class="empty">Nothing matches these filters.</div></td></tr>'}</tbody></table></div>
+   <div class="pagefoot">Showing ${visible.length} of ${all.length}${one&&!convFilters.noAnswer&&hiddenN?` · ${hiddenN} rehash threads with no client reply are hidden by default — include them via Filter`:""}${one?"":" · exactly the production experience — rehash threads live in Rehashed Leads"}</div>`;
+}
+
+/* ================= Drawer plumbing ================= */
+const DRAWERS=["convDrawer","segDrawer","campDrawer","wizDrawer"];
+function openDrawerEl(id){
+  DRAWERS.forEach(d=>document.getElementById(d).classList.toggle("open",d===id));
+  document.getElementById("overlay").classList.add("open");
+}
+function closeAllDrawers(){
+  DRAWERS.forEach(d=>document.getElementById(d).classList.remove("open"));
+  document.getElementById("overlay").classList.remove("open");
+}
+
+/* ================= Wizard ================= */
+let wstep=1,editingCampId=null,selSegIds=new Set(),wizTopics=defaultTopics(),wizTone="professional";
+function renderTopics(){
+  document.getElementById("topicList").innerHTML=TOPICS.map(t=>`
+   <div class="topic">
+     <button class="switch ${wizTopics[t.id]?"on":""}" role="switch" aria-checked="${!!wizTopics[t.id]}" aria-label="${t.label}" onclick="wizTopics['${t.id}']=!wizTopics['${t.id}'];this.classList.toggle('on');this.setAttribute('aria-checked',wizTopics['${t.id}'])"></button>
+     <div><div class="topic-t">${t.label}</div><div class="topic-d">${t.desc}</div></div>
+   </div>`).join("");
+}
+function renderTone(){
+  document.getElementById("toneSeg").innerHTML=TONES.map(([k,l])=>`<button class="${wizTone===k?"on":""}" onclick="wizTone='${k}';renderTone()">${l}</button>`).join("");
+}
+const wNextLabels=["Next: assistant behavior","Next: stopping rules","Launch campaign"];
+function openWizard(campId){
+  editingCampId=campId;wstep=1;
+  const c=campId?campaigns.find(x=>x.id===campId):null;
+  selSegIds=new Set(c?c.segIds:(()=>{const free=segments.find(s=>!segUsedBy(s.id).length);return [free?free.id:segments[0].id]})());
+  document.getElementById("campName").value=c?c.name:"";
+  wizTopics=c&&c.topics?{...c.topics}:defaultTopics();
+  wizTone=c?c.tone:"professional";
+  document.getElementById("guidance").value=c?c.guidance||"":"";
+  renderTopics();renderTone();
+  const re=c?(c.reentry==="Never"?"never":c.reentry==="Always"?"always":"90"):"90";
+  document.querySelectorAll('input[name=re]').forEach(r=>{r.checked=(r.value===re);r.closest(".radio-card").classList.toggle("sel",r.checked)});
+  document.querySelectorAll('input[name=cad]').forEach(r=>{r.checked=(r.value==="standard");r.closest(".radio-card").classList.toggle("sel",r.checked)});
+  document.getElementById("customRhythm").style.display="none";
+  renderWizSegs();syncWiz();
+  openDrawerEl("wizDrawer");
+}
+function renderWizSegs(){
+  document.getElementById("wSegList").innerHTML=segments.map(s=>{
+    const n=matchRows(s.filters).length,sel=selSegIds.has(s.id),used=segUsedBy(s.id).filter(u=>!editingCampId||u!==campaigns.find(c=>c.id===editingCampId).name);
+    return `<label class="radio-card ${sel?"sel":""}"><input type="checkbox" ${sel?"checked":""} onchange="toggleSeg(${s.id},this)"><span><b>${s.name} — ${n} match now</b><span>${summarize(s.filters)}${used.length?` · also used by "${used.join('", "')}"`:""}</span></span></label>`;
+  }).join("");
+}
+function toggleSeg(id,el){
+  el.checked?selSegIds.add(id):selSegIds.delete(id);
+  el.closest(".radio-card").classList.toggle("sel",el.checked);
+}
+function wizToNewSegment(){
+  showPage("rehash");showTab("segments");openSegDrawer(null);
+  toast("Save the segment, then reopen the campaign — it will be in the list");
+}
+function unionCount(){
+  const set=new Set();
+  selSegIds.forEach(id=>{const s=segments.find(x=>x.id===id);if(s)matchRows(s.filters).forEach(e=>set.add(e.name))});
+  return set.size;
+}
+function rhythmLabel(){
+  const v=document.querySelector('input[name=cad]:checked').value;
+  return v==="standard"?"5 texts over 14 days":v==="gentle"?"3 texts over 14 days":`${document.getElementById("cTouches").value} texts over ${document.getElementById("cDays").value} days`;
+}
+function syncWiz(){
+  [1,2,3].forEach(i=>{
+    document.getElementById("wstep"+i).hidden=(i!==wstep);
+    document.getElementById("sd"+i).classList.toggle("on",i<=wstep);
+  });
+  if(wstep===3){
+    document.getElementById("backlogBox").style.display=editingCampId?"none":"block";
+    if(!editingCampId){
+      document.getElementById("backlogN").textContent=unionCount();
+      const names=[...selSegIds].map(id=>segments.find(s=>s.id===id)?.name).filter(Boolean);
+      document.getElementById("backlogSeg").textContent=names.length===1?`"${names[0]}"`:`these ${names.length} segments`;
+    }
+  }
+  document.getElementById("wBack").textContent=wstep===1?"Cancel":"Back";
+  document.getElementById("wNext").textContent=wstep===3?(editingCampId?"Save changes":"Launch campaign"):wNextLabels[wstep-1];
+  document.getElementById("wKicker").textContent=editingCampId?"EDIT CAMPAIGN":"NEW CAMPAIGN";
+  document.getElementById("wTitle").textContent=["Audience","Assistant behavior",editingCampId?"Stopping rules":"Stopping rules & launch"][wstep-1];
+}
+function wizNext(){
+  if(wstep===1&&!selSegIds.size){toast("Pick at least one segment first");return}
+  if(wstep<3){wstep++;syncWiz();return}
+  const name=document.getElementById("campName").value.trim()||"Untitled campaign";
+  const reVal=document.querySelector('input[name=re]:checked').value;
+  const reentry=reVal==="never"?"Never":reVal==="always"?"Always":"Only after 90 days";
+  const data={name,segIds:[...selSegIds],rhythm:rhythmLabel(),
+    topics:{...wizTopics},tone:wizTone,guidance:document.getElementById("guidance").value.trim(),reentry};
+  if(editingCampId){
+    Object.assign(campaigns.find(c=>c.id===editingCampId),data);
+    closeAllDrawers();refreshAll();showPage("rehash");showTab("campaigns");
+    toast(`${name} updated — changes apply from the next send`);
+  }else{
+    const backlog=document.getElementById("backlogSwitch").classList.contains("on");
+    const n=unionCount();
+    campaigns.unshift({id:nextCampId++,...data,status:"active",stats:{cad:backlog?n:0,rep:0,hand:0}});
+    closeAllDrawers();refreshAll();showPage("rehash");showTab("campaigns");
+    toast(backlog?`${name} is live — ${n} backlog estimates spread over the next 3 days, first texts tomorrow 9 AM`
+                 :`${name} is live — it will pick up new estimates as they match`);
+  }
+}
+function wizBack(){
+  if(wstep===1)closeAllDrawers();
+  else{wstep--;syncWiz()}
+}
+
+/* ================= Router + IA switch ================= */
+function showPage(p){
+  if(p==="rl"&&iaOption==="one")p="opps"; /* Option A has no Rehashed Leads page — it lives inside Opportunities */
+  curPage=p;
+  ["rehash","opps","rl","conv"].forEach(x=>document.getElementById("page-"+x).hidden=(x!==p));
+  document.getElementById("navSR").classList.toggle("active",p==="opps");
+  document.getElementById("navRL").classList.toggle("active",p==="rl");
+  document.getElementById("navConv").classList.toggle("active",p==="conv");
+  document.getElementById("navRehash").classList.toggle("active",p==="rehash");
+  document.getElementById("crumb").innerHTML=
+    p==="rehash"?'Agents &amp; Tools / <b>Estimate Rehashing</b>'
+    :p==="opps"?`<b>${iaOption==="one"?"Opportunities":"Service Requests"}</b>`
+    :p==="rl"?'<b>Rehashed Leads</b>'
+    :'<b>Conversations</b>';
+  if(p==="opps")renderOppsPage();
+  if(p==="rl")renderRLPage();
+  if(p==="conv")renderConvPage();
+  if(p==="rehash"){renderPointer()}
+  closeAllDrawers();
+}
+function setIA(opt){
+  iaOption=opt;oppTab="all";oppStatusTab="all";
+  document.getElementById("iaBtnOne").className="btn btn-sm "+(opt==="one"?"btn-primary":"btn-outline");
+  document.getElementById("iaBtnTwo").className="btn btn-sm "+(opt==="two"?"btn-primary":"btn-outline");
+  document.getElementById("navSRLabel").textContent=opt==="one"?"Opportunities":"Service Requests";
+  document.getElementById("navRL").hidden=(opt!=="two");
+  convTab="all";convCampFilter="all";
+  if(opt==="one"&&curPage==="rl")curPage="opps";
+  showPage(curPage);
+}
+
+/* ================= Misc ================= */
+let toastTimer;
+function toast(msg){
+  document.getElementById("toastMsg").textContent=msg;
+  const t=document.getElementById("toast");
+  t.classList.add("show");clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove("show"),4200);
+}
+document.addEventListener("change",e=>{
+  if(e.target.matches('.radio-card input[type=radio]')){
+    document.querySelectorAll(`input[name=${e.target.name}]`).forEach(r=>r.closest(".radio-card").classList.toggle("sel",r.checked));
+    if(e.target.name==="cad")document.getElementById("customRhythm").style.display=(e.target.value==="custom"&&e.target.checked)?"flex":"none";
+  }
+});
+document.addEventListener("click",()=>{const p=document.getElementById("convPop");if(p)p.classList.remove("open")});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeAllDrawers();closePauseModal();closeExc()}});
+
+renderGlance();renderSegList();renderCampaigns();setIA("one");
+</script>
