@@ -111,6 +111,21 @@
   .stat .sub{font-size:11.5px;color:var(--text-3);margin-top:2px}
   .stat .delta{color:var(--green-fg);font-weight:600}
   .section-lbl{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);margin:26px 0 10px}
+  /* Option C — open-estimates-to-zero funnel */
+  .zero-hero{background:#fff;border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow-sm);padding:20px 22px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+  .zero-hero .big{font-size:40px;font-weight:800;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums}
+  .zero-hero .arrow{font-size:20px;color:var(--text-3)}
+  .zero-hero .goal{font-size:34px;font-weight:800;color:var(--green-fg);letter-spacing:-.03em}
+  .zero-hero .cap{font-size:12.5px;color:var(--text-2)}
+  .bucket{display:flex;align-items:center;gap:13px;padding:13px 16px;border:1px solid var(--border);border-radius:11px;background:#fff}
+  .bucket + .bucket{margin-top:9px}
+  .bucket.act{border-color:#BAE0FF;background:var(--brand-tint)}
+  .bucket.act.warm{border-color:var(--green-bd);background:var(--green-bg)}
+  .bucket .ico{font-size:19px;width:26px;text-align:center;flex:none}
+  .bucket .bn{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;width:34px;text-align:right;flex:none}
+  .bucket .bt{font-weight:600;font-size:13.5px}
+  .bucket .bd{font-size:12px;color:var(--text-2)}
+  .bucket .bmid{flex:1;min-width:0}
   .tablewrap{border:1px solid var(--border);border-radius:10px;overflow-x:auto;background:#fff}
   .tablewrap table{min-width:660px}
   table{width:100%;border-collapse:collapse;font-size:13px}
@@ -241,8 +256,9 @@
   <span>Tenant: Summit Air &amp; Heat.</span>
   <span style="margin-left:auto;display:flex;gap:6px;align-items:center;flex:none">
     <span style="font-weight:600;color:#33404f">Compare IA:</span>
-    <button class="btn btn-sm btn-primary" id="iaBtnOne" onclick="setIA('one')">A · One queue</button>
+    <button class="btn btn-sm btn-outline" id="iaBtnOne" onclick="setIA('one')">A · One queue</button>
     <button class="btn btn-sm btn-outline" id="iaBtnTwo" onclick="setIA('two')">B · Two tabs</button>
+    <button class="btn btn-sm btn-primary" id="iaBtnThree" onclick="setIA('three')">C · Research-applied</button>
   </span>
 </div>
 
@@ -305,22 +321,7 @@
       </div>
 
       <!-- OVERVIEW -->
-      <section id="tab-overview">
-        <div class="stat-grid">
-          <div class="card stat"><div class="lbl">Open estimates being worked</div><div class="val">38</div><div class="sub">of 214 imported · 12 excluded by your rules</div></div>
-          <div class="card stat"><div class="lbl">Reply rate (30 days)</div><div class="val">47%</div><div class="sub"><span class="delta">▲ 9pts</span> vs first two weeks</div></div>
-          <div class="card stat"><div class="lbl">Warm leads handed off</div><div class="val">11</div><div class="sub">3 waiting on your team ↓</div></div>
-          <div class="card stat"><div class="lbl">Recovered revenue</div><div class="val">$7,850</div><div class="sub">Estimates sold within 30 days of assistant contact</div></div>
-        </div>
-        <div id="warmPointer" style="margin-top:24px"></div>
-        <div class="section-lbl">Campaigns at a glance</div>
-        <div class="tablewrap">
-          <table>
-            <thead><tr><th>Campaign</th><th>Segments</th><th style="width:110px">In cadence</th><th style="width:100px">Replies</th><th style="width:100px">Handoffs</th><th style="width:120px">Status</th></tr></thead>
-            <tbody id="campGlance"></tbody>
-          </table>
-        </div>
-      </section>
+      <section id="tab-overview"><div id="overviewRoot"></div></section>
 
       <!-- SEGMENTS -->
       <section id="tab-segments" hidden>
@@ -477,12 +478,27 @@
           <label class="radio-card"><input type="radio" name="cad" value="gentle"><span><b>Gentle — 3 texts over 14 days</b><span>For customers you don't want to nudge as often.</span></span></label>
           <label class="radio-card"><input type="radio" name="cad" value="custom"><span><b>Custom — you choose</b><span>Pick how many texts and over how long.</span>
             <span class="customrhythm" id="customRhythm" style="display:none">
-              <select id="cTouches" onclick="event.preventDefault()"><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option></select> texts over
-              <select id="cDays" onclick="event.preventDefault()"><option>7</option><option>10</option><option selected>14</option><option>21</option><option>30</option></select> days
+              <select id="cTouches" onchange="updateCadPreview()"><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option></select> texts over
+              <select id="cDays" onchange="updateCadPreview()"><option>7</option><option>10</option><option selected>14</option><option>21</option><option>30</option></select> days
             </span></span></label>
+          <div class="hint" id="cadPreview" style="margin-top:10px"></div>
+          <div class="switchrow" style="padding:8px 0 0"><button class="switch on" id="wkndSwitch" onclick="this.classList.toggle('on');updateCadPreview()" role="switch" aria-checked="true" aria-label="Send on weekends"></button>Send on weekends</div>
+        </div>
+        <div class="field">
+          <label>When an estimate has multiple options, which should the assistant focus on?</label>
+          <select id="optionPref" style="width:100%;font-size:13px;border:1px solid var(--border-2);border-radius:8px;padding:8px 10px;background:#fff">
+            <option value="first">The first option — we drag the one to push to the front</option>
+            <option value="highest">The highest-value option</option>
+            <option value="lowest">The lowest-price option</option>
+          </select>
+          <div class="hint">Housecall Pro lets you reorder an estimate's options — the assistant treats the first as your recommendation.</div>
         </div>
         <div class="field">
           <label>Topics the assistant can bring up</label>
+          <div class="topic" style="border-top:none;background:var(--muted-30);border:1px solid var(--border);border-radius:10px;padding:11px 13px;margin-bottom:8px">
+            <span class="ico" style="font-size:16px">📌</span>
+            <div><div class="topic-t">Always explains why this estimate matters</div><div class="topic-d">Pulled from the job's summary of work — the #1 thing that earns a reply. Always on.</div></div>
+          </div>
           <div id="topicList"></div>
           <div class="hint" style="margin-top:8px">The assistant writes each text itself and always answers questions from the estimate. These are the extra topics it's allowed to raise when they fit the conversation — turn on only what suits your business.</div>
         </div>
@@ -507,7 +523,7 @@
             <div class="lockrow" style="color:var(--text-2);padding:0">✓ All follow-ups have been sent</div>
           </div>
         </div>
-        <div class="field">
+        <div class="field" id="reentryField">
           <label>If this customer gets another estimate later, follow up again?</label>
           <label class="radio-card"><input type="radio" name="re" value="never"><span><b>Never</b><span>One follow-up sequence per customer, ever.</span></span></label>
           <label class="radio-card sel"><input type="radio" name="re" value="90" checked><span><b>Only after 90 days (recommended)</b><span>New estimates re-enter, but never back-to-back.</span></span></label>
@@ -835,7 +851,57 @@ function showTab(id){
   ["overview","segments","campaigns"].forEach(s=>document.getElementById("tab-"+s).hidden=(s!==id));
   if(id==="segments")renderSegList();
   if(id==="campaigns")renderCampaigns();
-  if(id==="overview"){renderGlance();renderPointer()}
+  if(id==="overview")renderOverview();
+}
+function renderOverview(){
+  const root=document.getElementById("overviewRoot");
+  if(iaOption==="three"){
+    const F={warm:3,decide:9,excluded:12,unsent:4,talking:1,following:21};
+    const action=F.warm+F.decide+F.excluded+F.unsent;
+    const total=action+F.talking+F.following;
+    const bucket=(cls,ico,n,title,desc,btn)=>`
+      <div class="bucket ${cls}">
+        <span class="ico">${ico}</span><span class="bn">${n}</span>
+        <div class="bmid"><div class="bt">${title}</div><div class="bd">${desc}</div></div>
+        ${btn||""}
+      </div>`;
+    const go=(t,label)=>`<button class="btn btn-outline btn-sm" onclick="rlTab='${t}';showPage('rl')">${label} →</button>`;
+    root.innerHTML=`
+     <div class="zero-hero">
+       <div><div class="big">${action}</div><div class="cap">need a call or a decision from you</div></div>
+       <div class="arrow">→</div>
+       <div><div class="goal">0</div><div class="cap">the goal</div></div>
+       <div style="flex:1;min-width:180px;text-align:right">
+         <div style="font-size:13px;color:var(--text-2)"><b>${total}</b> open estimates in all · the assistant is handling <b>${F.talking+F.following}</b> of them</div>
+         <div style="font-size:11.5px;color:var(--text-3);margin-top:3px">Every open estimate has a known place. Get the number on the left to zero.</div>
+       </div>
+     </div>
+     <div class="section-lbl">Needs you — work these to zero</div>
+     ${bucket("act warm","🔥",F.warm,"Warm — call now","The assistant warmed them up and they're interested. Call to close.",go("warm","Call list"))}
+     ${bucket("act","⏰",F.decide,"30+ days, no reply — refresh or close?","Campaign's done and the quote's past its 30-day validity. Your call.",`<button class="btn btn-outline btn-sm" onclick="toast('Would list the 30+ day estimates so you can refresh the quote or close each one')">Decide →</button>`)}
+     ${bucket("act","🚫",F.excluded,"Excluded from the assistant — your team follows up","You tagged these no-AI / don't-rehash. They still need a human.",`<button class="btn btn-outline btn-sm" onclick="toast('Would list the excluded estimates for manual follow-up')">View →</button>`)}
+     ${bucket("act","📤",F.unsent,"Created but not sent (>7 days)","Sitting unsent in Housecall Pro. Send them out — the clock hasn't even started.",`<button class="btn btn-outline btn-sm" onclick="toast('Would list estimates created but never sent')">View →</button>`)}
+     <div class="section-lbl">The assistant's got these — nothing for you to do</div>
+     ${bucket("","💬",F.talking,"In conversation","The customer is replying to the assistant right now.",go("talking","View"))}
+     ${bucket("","📨",F.following,"Following up — no reply yet","Getting texted on schedule. Drops out the moment they're sold or reply.",go("cadence","View"))}
+     <div class="pagefoot" style="margin-top:16px">✅ 8 estimates closed this month via rehash · <b>$7,850</b> recovered</div>`;
+    return;
+  }
+  /* A / B — current dashboard */
+  root.innerHTML=`
+    <div class="stat-grid">
+      <div class="card stat"><div class="lbl">Open estimates being worked</div><div class="val">38</div><div class="sub">of 214 imported · 12 excluded by your rules</div></div>
+      <div class="card stat"><div class="lbl">Reply rate (30 days)</div><div class="val">47%</div><div class="sub"><span class="delta">▲ 9pts</span> vs first two weeks</div></div>
+      <div class="card stat"><div class="lbl">Warm leads handed off</div><div class="val">11</div><div class="sub">3 waiting on your team ↓</div></div>
+      <div class="card stat"><div class="lbl">Recovered revenue</div><div class="val">$7,850</div><div class="sub">Estimates sold within 30 days of assistant contact</div></div>
+    </div>
+    <div id="warmPointer" style="margin-top:24px"></div>
+    <div class="section-lbl">Campaigns at a glance</div>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Campaign</th><th>Segments</th><th style="width:110px">In cadence</th><th style="width:100px">Replies</th><th style="width:100px">Handoffs</th><th style="width:120px">Status</th></tr></thead>
+      <tbody id="campGlance"></tbody>
+    </table></div>`;
+  renderPointer();renderGlance();
 }
 
 /* ================= Overview ================= */
@@ -845,6 +911,7 @@ function statusBadge(c){
    :c.status==="archived"?'<span class="badge badge-outline">Archived</span>'
    :'<span class="badge badge-gray">Draft</span>'}
 function renderGlance(){
+  if(!document.getElementById("campGlance"))return;
   document.getElementById("campGlance").innerHTML=campaigns.map(c=>`
    <tr class="rowbtn" onclick="openCampDrawer(${c.id})">
      <td class="t-name">${c.name}</td>
@@ -856,6 +923,7 @@ function renderGlance(){
    </tr>`).join("");
 }
 function renderPointer(){
+  if(!document.getElementById("warmPointer"))return;
   const warmN=roster.filter(r=>r.stage==="warm").length;
   const one=iaOption==="one";
   const label=one?"Opportunities":"Rehashed Leads", target=one?"opps":"rl";
@@ -999,7 +1067,8 @@ function confirmExc(){
 }
 function refreshAll(){
   if(tempSeg&&document.getElementById("segDrawer").classList.contains("open"))renderPreview();
-  renderSegList();renderCampaigns();renderGlance();renderPointer();
+  renderSegList();renderCampaigns();
+  if(curPage==="rehash"&&curTab==="overview")renderOverview();
   if(curPage==="opps")renderOppsPage();
   if(curPage==="rl")renderRLPage();
   if(curPage==="conv")renderConvPage();
@@ -1092,7 +1161,7 @@ function openCampDrawer(id){
      <div style="display:flex;flex-direction:column;gap:5px;font-size:13px">
        ${TOPICS.filter(t=>c.topics&&c.topics[t.id]).map(t=>`<div>✓ ${t.label}</div>`).join("")||'<div class="t-muted">Just answers questions — no extra topics</div>'}
      </div>
-     <dl class="dl" style="margin-top:11px"><dt>Tone</dt><dd>${(TONES.find(x=>x[0]===c.tone)||["","—"])[1]}</dd>${c.guidance?`<dt>Your note</dt><dd>${c.guidance}</dd>`:""}</dl></div>
+     <dl class="dl" style="margin-top:11px"><dt>Tone</dt><dd>${(TONES.find(x=>x[0]===c.tone)||["","—"])[1]}</dd><dt>Multiple options</dt><dd>${c.optionPref==="highest"?"Focus on the highest-value option":c.optionPref==="lowest"?"Focus on the lowest-price option":"Focus on the first (recommended) option"}</dd>${c.guidance?`<dt>Your note</dt><dd>${c.guidance}</dd>`:""}</dl></div>
    <div class="dsec"><h4>Always &amp; never (built in)</h4>
      <dl class="dl">
        <dt>Discounts</dt><dd>Never — hardwired</dd>
@@ -1266,9 +1335,44 @@ function renderOppsPage(){
 /* ================= Page: Rehashed Leads (B) ================= */
 const RL_TABS=[["warm","Warm leads"],["talking","Talking to assistant"],["cadence","In cadence"],["sold","Sold"],["stopped","Stopped"]];
 function rlStageMatch(r,tab){return tab==="cadence"?(r.stage==="cadence"||r.stage==="queued"):r.stage===tab}
+const C_RL_TABS=[["warm","Needs your call"],["talking","In conversation"],["cadence","Following up"],["sold","Won"],["stopped","Closed / stopped"]];
 function renderRLPage(){
   const root=document.getElementById("rlRoot");
-  const counts=Object.fromEntries(RL_TABS.map(([k])=>[k,roster.filter(r=>rlStageMatch(r,k)&&(rlCampFilter==="all"||r.campId===rlCampFilter)).length]));
+  const three=iaOption==="three";
+  const TABS=three?C_RL_TABS:RL_TABS;
+  const counts=Object.fromEntries(TABS.map(([k])=>[k,roster.filter(r=>rlStageMatch(r,k)&&(rlCampFilter==="all"||r.campId===rlCampFilter)).length]));
+  if(three){
+    const campChips=[`<button class="btn btn-sm ${rlCampFilter==="all"?"btn-primary":"btn-outline"}" onclick="rlCampFilter='all';renderRLPage()">All campaigns</button>`]
+     .concat(campaigns.filter(c=>roster.some(r=>r.campId===c.id)).map(c=>
+      `<button class="btn btn-sm ${rlCampFilter===c.id?"btn-primary":"btn-outline"}" onclick="rlCampFilter=${c.id};renderRLPage()">${c.name}</button>`)).join("");
+    const rows=roster.filter(r=>rlStageMatch(r,rlTab)&&(rlCampFilter==="all"||r.campId===rlCampFilter));
+    const openN=roster.filter(r=>["warm","talking","cadence","queued"].includes(r.stage)&&(rlCampFilter==="all"||r.campId===rlCampFilter)).length;
+    const banner=rlTab==="warm"
+      ?(counts.warm?`<div class="bucket act warm" style="margin:14px 0 0"><span class="ico">🔥</span><span class="bn">${counts.warm}</span><div class="bmid"><div class="bt">Call these to close</div><div class="bd">The assistant warmed them up — this is the only list that needs you. Get it to zero.</div></div></div>`
+        :`<div class="bucket warm" style="margin:14px 0 0;border-color:var(--green-bd);background:var(--green-bg)"><span class="ico">🎉</span><div class="bmid"><div class="bt">Nothing needs your call right now</div><div class="bd">The assistant's on top of everyone else.</div></div></div>`)
+      :"";
+    root.innerHTML=`
+     <div class="page-h"><div><h1>Rehashed Leads</h1><p>${openN} open estimates the assistant is working. The only tab that needs you is the first — get it to zero.</p></div></div>
+     <nav class="utabs" role="tablist">${TABS.map(([k,l])=>`<button class="utab ${rlTab===k?"active":""}" role="tab" onclick="rlTab='${k}';renderRLPage()">${l}<span class="cnt">${counts[k]}</span></button>`).join("")}</nav>
+     ${banner}
+     <div class="toolbar">
+       <div class="searchbox"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+         <input placeholder="Search rehashed leads..." aria-label="Search" oninput="toast('Search is decorative in this prototype')"></div>
+       <div style="display:flex;gap:6px;flex-wrap:wrap">${campChips}</div>
+     </div>
+     <div class="tablewrap"><table>
+      <thead><tr><th style="width:86px">Ref</th><th style="width:150px">Contact</th><th style="width:130px">Phone</th><th>Estimate</th><th style="width:90px">Value</th><th style="width:170px">Campaign</th><th>What's next</th></tr></thead>
+      <tbody>${rows.map(r=>{
+        const camp=campaigns.find(c=>c.id===r.campId);
+        return `<tr class="rowbtn" onclick="openLeadDrawer('${r.name.replace(/'/g,"\\'")}')">
+          <td class="t-num t-muted">${r.ref}</td><td class="t-name">${r.name}</td>
+          <td class="t-num t-muted">${(estimates.find(e=>e.name===r.name)||{}).phone||"—"}</td>
+          <td class="t-muted">${r.est}</td><td class="t-num">${r.val}</td>
+          <td class="t-muted">${camp?camp.name:"—"}</td><td class="t-muted">${r.next}</td>
+        </tr>`}).join("")||'<tr><td colspan="7"><div class="empty">Nobody in this stage right now.</div></td></tr>'}</tbody></table></div>
+     <div class="pagefoot">Showing ${rows.length} · click a lead for details and the thread. Threads with replies also appear in Conversations.</div>`;
+    return;
+  }
   const campChips=[`<button class="btn btn-sm ${rlCampFilter==="all"?"btn-primary":"btn-outline"}" onclick="rlCampFilter='all';renderRLPage()">All campaigns</button>`]
    .concat(campaigns.filter(c=>roster.some(r=>r.campId===c.id)).map(c=>
     `<button class="btn btn-sm ${rlCampFilter===c.id?"btn-primary":"btn-outline"}" onclick="rlCampFilter=${c.id};renderRLPage()">${c.name}</button>`)).join("");
@@ -1411,13 +1515,32 @@ function openWizard(campId){
   document.querySelectorAll('input[name=re]').forEach(r=>{r.checked=(r.value===re);r.closest(".radio-card").classList.toggle("sel",r.checked)});
   document.querySelectorAll('input[name=cad]').forEach(r=>{r.checked=(r.value==="standard");r.closest(".radio-card").classList.toggle("sel",r.checked)});
   document.getElementById("customRhythm").style.display="none";
+  document.getElementById("optionPref").value=c?c.optionPref||"first":"first";
+  document.getElementById("wkndSwitch").classList.toggle("on",c?c.weekends!==false:true);
   renderWizSegs();syncWiz();
   openDrawerEl("wizDrawer");
+}
+function updateCadPreview(){
+  const el=document.getElementById("cadPreview");if(!el)return;
+  const v=(document.querySelector('input[name=cad]:checked')||{}).value||"standard";
+  let n,d;
+  if(v==="standard"){n=5;d=14}else if(v==="gentle"){n=3;d=14}
+  else{n=+document.getElementById("cTouches").value;d=+document.getElementById("cDays").value}
+  const wknd=document.getElementById("wkndSwitch").classList.contains("on");
+  const dn=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],out=[],base=new Date();
+  for(let i=0;i<n;i++){
+    let off=n===1?1:Math.max(1,Math.round(1+i*(d-1)/(n-1)));
+    let dt=new Date(base);dt.setDate(base.getDate()+off);
+    if(!wknd){while(dt.getDay()===0||dt.getDay()===6)dt.setDate(dt.getDate()+1)}
+    out.push(dn[dt.getDay()]+" "+(dt.getMonth()+1)+"/"+dt.getDate());
+  }
+  el.innerHTML=`📅 First texts go out at 9 AM on: <b>${out.join(" · ")}</b>${wknd?"":" · weekends skipped"}`;
 }
 function renderWizSegs(){
   document.getElementById("wSegList").innerHTML=segments.map(s=>{
     const n=matchRows(s.filters).length,sel=selSegIds.has(s.id),used=segUsedBy(s.id).filter(u=>!editingCampId||u!==campaigns.find(c=>c.id===editingCampId).name);
-    return `<label class="radio-card ${sel?"sel":""}"><input type="checkbox" ${sel?"checked":""} onchange="toggleSeg(${s.id},this)"><span><b>${s.name} — ${n} match now</b><span>${summarize(s.filters)}${used.length?` · also used by "${used.join('", "')}"`:""}</span></span></label>`;
+    const exc=matchIncOnly(s.filters).length-n;
+    return `<label class="radio-card ${sel?"sel":""}"><input type="checkbox" ${sel?"checked":""} onchange="toggleSeg(${s.id},this)"><span><b>${s.name} — ${n} match now</b><span>${summarize(s.filters)}${exc>0?` · ${exc} excluded`:""}${used.length?` · also used by "${used.join('", "')}"`:""}</span></span></label>`;
   }).join("");
 }
 function toggleSeg(id,el){
@@ -1442,6 +1565,9 @@ function syncWiz(){
     document.getElementById("wstep"+i).hidden=(i!==wstep);
     document.getElementById("sd"+i).classList.toggle("on",i<=wstep);
   });
+  if(wstep===2)updateCadPreview();
+  /* Spencer/Cowboy feedback: re-entry doesn't fit HCP — drop it in the research-applied option */
+  document.getElementById("reentryField").style.display=(iaOption==="three")?"none":"block";
   if(wstep===3){
     document.getElementById("backlogBox").style.display=editingCampId?"none":"block";
     if(!editingCampId){
@@ -1462,7 +1588,8 @@ function wizNext(){
   const reVal=document.querySelector('input[name=re]:checked').value;
   const reentry=reVal==="never"?"Never":reVal==="always"?"Always":"Only after 90 days";
   const data={name,segIds:[...selSegIds],rhythm:rhythmLabel(),
-    topics:{...wizTopics},tone:wizTone,guidance:document.getElementById("guidance").value.trim(),reentry};
+    topics:{...wizTopics},tone:wizTone,guidance:document.getElementById("guidance").value.trim(),reentry,
+    optionPref:document.getElementById("optionPref").value,weekends:document.getElementById("wkndSwitch").classList.contains("on")};
   if(editingCampId){
     Object.assign(campaigns.find(c=>c.id===editingCampId),data);
     closeAllDrawers();refreshAll();showPage("rehash");showTab("campaigns");
@@ -1498,15 +1625,20 @@ function showPage(p){
   if(p==="opps")renderOppsPage();
   if(p==="rl")renderRLPage();
   if(p==="conv")renderConvPage();
-  if(p==="rehash"){renderPointer()}
+  if(p==="rehash")renderOverview();
   closeAllDrawers();
 }
 function setIA(opt){
-  iaOption=opt;oppTab="all";oppStatusTab="all";
+  iaOption=opt;oppTab="all";oppStatusTab="all";rlTab="warm";
   document.getElementById("iaBtnOne").className="btn btn-sm "+(opt==="one"?"btn-primary":"btn-outline");
   document.getElementById("iaBtnTwo").className="btn btn-sm "+(opt==="two"?"btn-primary":"btn-outline");
+  document.getElementById("iaBtnThree").className="btn btn-sm "+(opt==="three"?"btn-primary":"btn-outline");
   document.getElementById("navSRLabel").textContent=opt==="one"?"Opportunities":"Service Requests";
-  document.getElementById("navRL").hidden=(opt!=="two");
+  document.getElementById("navRL").hidden=(opt==="one"); /* shown in B and C */
+  /* Option C merges Segments into Campaigns — hide the standalone Segments tab */
+  const segTab=document.querySelector('.tab[data-tab="segments"]');
+  segTab.hidden=(opt==="three");
+  if(opt==="three"&&curTab==="segments")showTab("campaigns");
   convTab="all";convCampFilter="all";
   if(opt==="one"&&curPage==="rl")curPage="opps";
   showPage(curPage);
@@ -1523,11 +1655,11 @@ function toast(msg){
 document.addEventListener("change",e=>{
   if(e.target.matches('.radio-card input[type=radio]')){
     document.querySelectorAll(`input[name=${e.target.name}]`).forEach(r=>r.closest(".radio-card").classList.toggle("sel",r.checked));
-    if(e.target.name==="cad")document.getElementById("customRhythm").style.display=(e.target.value==="custom"&&e.target.checked)?"flex":"none";
+    if(e.target.name==="cad"){document.getElementById("customRhythm").style.display=(e.target.value==="custom"&&e.target.checked)?"flex":"none";updateCadPreview()}
   }
 });
 document.addEventListener("click",()=>{const p=document.getElementById("convPop");if(p)p.classList.remove("open")});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeAllDrawers();closePauseModal();closeExc()}});
 
-renderGlance();renderSegList();renderCampaigns();setIA("one");
+renderSegList();renderCampaigns();setIA("three");
 </script>
