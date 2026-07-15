@@ -16,15 +16,15 @@
   *{box-sizing:border-box;margin:0;padding:0}
   [hidden]{display:none!important}
   html,body{height:100%}
-  body{font-family:var(--font);color:var(--text);background:#E9EDF2;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  body{font-family:var(--font);color:var(--text);background:#E9EDF2;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;display:flex;flex-direction:column;height:100vh;overflow:hidden}
   button{font:inherit;cursor:pointer;background:none;border:none;color:inherit}
   button:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:3px solid rgba(22,119,255,.5);outline-offset:1px;border-radius:6px}
   svg{flex:none}
   select,input[type=text],textarea{font:inherit;color:var(--text)}
 
-  .proto-note{max-width:1280px;margin:14px auto 0;padding:0 16px;display:flex;gap:10px;align-items:center;color:#5b6b7c;font-size:12px;flex-wrap:wrap}
+  .proto-note{flex:none;margin:0;padding:8px 16px;display:flex;gap:10px;align-items:center;color:#5b6b7c;font-size:12px;flex-wrap:wrap;background:#E9EDF2;border-bottom:1px solid #D7DEE6}
   .proto-note b{color:#33404f}
-  .frame{max-width:1280px;margin:10px auto 40px;background:var(--bg);border:1px solid #D7DEE6;border-radius:14px;overflow:hidden;box-shadow:0 8px 30px rgba(15,35,60,.10);display:flex;min-height:820px;position:relative}
+  .frame{flex:1;min-height:0;margin:0;background:var(--bg);overflow:hidden;display:flex;position:relative}
 
   /* ===== Sidebar ===== */
   .sidebar{width:240px;flex:none;background:var(--sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column}
@@ -88,6 +88,14 @@
   .utab:hover{color:var(--text)}
   .utab.active{color:var(--brand);border-color:var(--brand)}
   .utab .cnt{background:var(--muted);border-radius:99px;padding:0 7px;font-size:11px;color:var(--text-2);font-variant-numeric:tabular-nums}
+  /* Attention vs informational framing (Spencer's feedback) */
+  .utab.attn{color:var(--green-fg)}
+  .utab.attn.active{color:var(--green-fg);border-color:var(--green-fg)}
+  .utab.attn .cnt{background:var(--green-bg);color:var(--green-fg)}
+  .btn-attn{background:var(--green-fg);color:#fff;border:1px solid var(--green-fg)}
+  .btn-attn:hover{opacity:.9}
+  .attn-bar{margin:14px 0 0;padding:11px 14px;border-radius:10px;border:1px solid var(--green-bd);background:var(--green-bg);color:var(--green-fg);font-size:13px}
+  .info-bar{margin:14px 0 0;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--muted-30);color:var(--text-3);font-size:12.5px}
 
   /* ===== Toolbar (search + filter + export) ===== */
   .toolbar{display:flex;gap:8px;margin:14px 0 12px;align-items:center;flex-wrap:wrap}
@@ -256,9 +264,8 @@
   <span>Tenant: Summit Air &amp; Heat.</span>
   <span style="margin-left:auto;display:flex;gap:6px;align-items:center;flex:none">
     <span style="font-weight:600;color:#33404f">Compare IA:</span>
-    <button class="btn btn-sm btn-outline" id="iaBtnOne" onclick="setIA('one')">A · One queue</button>
+    <button class="btn btn-sm btn-primary" id="iaBtnOne" onclick="setIA('one')">A · One queue</button>
     <button class="btn btn-sm btn-outline" id="iaBtnTwo" onclick="setIA('two')">B · Two tabs</button>
-    <button class="btn btn-sm btn-primary" id="iaBtnThree" onclick="setIA('three')">C · Research-applied</button>
   </span>
 </div>
 
@@ -314,59 +321,32 @@
         </div>
       </div>
 
-      <div class="tabs" role="tablist">
-        <button class="tab active" role="tab" data-tab="overview" onclick="showTab('overview')">Overview</button>
-        <button class="tab" role="tab" data-tab="segments" onclick="showTab('segments')">Segments</button>
-        <button class="tab" role="tab" data-tab="campaigns" onclick="showTab('campaigns')">Campaigns</button>
-      </div>
-
-      <!-- OVERVIEW -->
-      <section id="tab-overview"><div id="overviewRoot"></div></section>
-
-      <!-- SEGMENTS -->
-      <section id="tab-segments" hidden>
-        <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:12px">
-          <div>
-            <div style="font-size:15px;font-weight:600">Your segments</div>
-            <div class="t-muted" style="font-size:12.5px">Saved filters over your estimates. Segments update themselves — estimates join when they match and leave the moment they don't.</div>
-          </div>
-          <button class="btn btn-primary" style="margin-left:auto;flex:none" onclick="openSegDrawer(null)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>New segment</button>
-        </div>
-        <div class="tablewrap">
-          <table>
-            <thead><tr><th style="width:230px">Segment</th><th>Rules</th><th style="width:110px">Match now</th><th style="width:180px">Used by campaign</th><th style="width:70px"></th></tr></thead>
-            <tbody id="segListRows"></tbody>
-          </table>
-        </div>
-      </section>
+      <!-- OVERVIEW METRICS -->
+      <div id="overviewRoot" style="margin-top:22px"></div>
 
       <!-- CAMPAIGNS -->
-      <section id="tab-campaigns" hidden>
-        <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:12px">
-          <div>
-            <div style="font-size:15px;font-weight:600">Your campaigns</div>
-            <div class="t-muted" style="font-size:12.5px">Click a row for full details and editing. Stopping a campaign freezes it in place — no one new starts, no one mid-sequence gets messages.</div>
-          </div>
+      <div style="display:flex;align-items:flex-start;gap:12px;margin:30px 0 12px">
+        <div>
+          <div style="font-size:15px;font-weight:600">Your campaigns</div>
+          <div class="t-muted" style="font-size:12.5px">Each campaign carries its own audience — no separate segments to keep in sync. Click a row for full details and editing. Stopping a campaign freezes it in place.</div>
         </div>
-        <div class="tablewrap">
-          <table>
-            <thead><tr>
-              <th style="width:150px">Campaign</th>
-              <th>Segment</th>
-              <th style="width:120px">Rhythm</th>
-              <th style="width:140px">Stops when</th>
-              <th style="width:110px">Re-entry</th>
-              <th style="width:96px">Status</th>
-              <th style="width:80px">In cadence</th>
-              <th style="width:64px">Replies</th>
-              <th style="width:72px">Handoffs</th>
-              <th style="width:70px">Excluded</th>
-              <th style="width:108px">Actions</th>
-            </tr></thead>
-            <tbody id="campRows"></tbody>
-          </table>
-        </div>
-      </section>
+      </div>
+      <div class="tablewrap">
+        <table style="min-width:1180px">
+          <thead><tr>
+            <th style="width:150px">Campaign</th>
+            <th style="min-width:520px">Audience</th>
+            <th style="width:120px">Rhythm</th>
+            <th style="width:96px">Status</th>
+            <th style="width:80px">In queue</th>
+            <th style="width:64px">Replies</th>
+            <th style="width:72px">Handoffs</th>
+            <th style="width:70px">Excluded</th>
+            <th style="width:108px">Actions</th>
+          </tr></thead>
+          <tbody id="campRows"></tbody>
+        </table>
+      </div>
 
     </div>
 
@@ -392,49 +372,6 @@
       <div style="display:flex;gap:6px;flex-wrap:wrap" id="dBadges"></div>
     </div>
     <div class="drawer-body" id="dBody"></div>
-  </aside>
-
-  <aside class="drawer" id="segDrawer" aria-label="Segment editor">
-    <div class="drawer-h">
-      <div class="ref"><span id="segDrawerKicker">NEW SEGMENT</span>
-        <button class="btn-ghost btn-sm btn" style="margin-left:auto" onclick="closeAllDrawers()" aria-label="Close">✕</button>
-      </div>
-      <input type="text" id="segName" class="nameinput" placeholder="Name this segment — e.g. High-value AC quotes" style="margin-top:6px" />
-    </div>
-    <div class="drawer-body">
-      <div class="dsec">
-        <h4>Who's included</h4>
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:9px;font-size:12.5px;color:var(--text-2)">
-          Estimates must match
-          <div class="segmented" role="group" aria-label="Match mode">
-            <button id="modeAll" class="on" onclick="setMode('all')">every rule (AND)</button>
-            <button id="modeAny" onclick="setMode('any')">any rule (OR)</button>
-          </div>
-        </div>
-        <div class="rulebox">
-          <div id="incRules"></div>
-          <button class="addrule" onclick="addRule('include')">+ Add rule</button>
-        </div>
-      </div>
-      <div class="dsec">
-        <h4>Always left out</h4>
-        <div class="rulebox exc">
-          <div id="excRules"></div>
-          <button class="addrule" onclick="addRule('exclude')">+ Add exclusion</button>
-          <div class="fixed-exc">Opted-out customers, and anyone you've marked "don't rehash", are always left out — you can't override this.</div>
-        </div>
-      </div>
-      <div class="dsec">
-        <h4>Who matches right now</h4>
-        <div class="live-count"><span class="n" id="segCount">0</span><span class="t">estimates match</span><span class="live"><span class="pulse"></span>LIVE</span></div>
-        <div class="mini" id="segMini"></div>
-        <p class="hint">Use the ⊘ button to exclude someone from rehashing (you'll confirm why). Excluded people stay visible, crossed out — bring them back anytime with the restore button.</p>
-      </div>
-    </div>
-    <div class="drawer-f">
-      <button class="btn btn-outline" onclick="closeAllDrawers()">Cancel</button>
-      <button class="btn btn-primary" onclick="saveSegment()">Save segment</button>
-    </div>
   </aside>
 
   <aside class="drawer" id="campDrawer" aria-label="Campaign details">
@@ -465,34 +402,58 @@
           <input type="text" id="campName" placeholder="e.g. Water heater rehash" />
         </div>
         <div class="field">
-          <label>Who gets followed up? Pick one or more segments</label>
-          <div id="wSegList"></div>
-          <div class="hint">A campaign keeps running: any new estimate that matches a selected segment gets followed up automatically. Sold estimates drop out on their own. A customer in two segments only gets one conversation.</div>
-          <button class="btn btn-outline btn-sm" style="margin-top:10px" onclick="wizToNewSegment()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Create a new segment</button>
+          <label>Who does this campaign follow up with?</label>
+          <div class="hint" style="margin-top:0;margin-bottom:9px">Build the audience right here — no separate segments to manage. Estimates join automatically when they match and drop out the moment they don't (e.g. once sold). A customer only ever gets one conversation, even with several open estimates.</div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:9px;font-size:12.5px;color:var(--text-2)">
+            Estimates must match
+            <div class="segmented" role="group" aria-label="Match mode">
+              <button id="modeAll" class="on" onclick="setMode('all')">every rule (AND)</button>
+              <button id="modeAny" onclick="setMode('any')">any rule (OR)</button>
+            </div>
+          </div>
+          <div class="rulebox">
+            <div id="incRules"></div>
+            <button class="addrule" onclick="addRule('include')">+ Add rule</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Always leave out</label>
+          <div class="rulebox exc">
+            <div id="excRules"></div>
+            <button class="addrule" onclick="addRule('exclude')">+ Add exclusion</button>
+            <div class="fixed-exc">Opted-out customers, and anyone you've marked "don't rehash", are always left out — you can't override this.</div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Who matches right now</label>
+          <div class="live-count"><span class="n" id="segCount">0</span><span class="t">estimates match</span><span class="live"><span class="pulse"></span>LIVE</span></div>
+          <div class="mini" id="segMini"></div>
+          <p class="hint">Use the ⊘ button to exclude someone (you'll confirm why). Excluded people stay visible, crossed out — bring them back anytime.</p>
         </div>
       </div>
       <div id="wstep2" hidden>
         <div class="field">
-          <label>Follow-up rhythm</label>
-          <label class="radio-card sel"><input type="radio" name="cad" value="standard" checked><span><b>Standard — 5 texts over 14 days (recommended)</b><span>Short, question-first messages. Stops the moment they reply.</span></span></label>
-          <label class="radio-card"><input type="radio" name="cad" value="gentle"><span><b>Gentle — 3 texts over 14 days</b><span>For customers you don't want to nudge as often.</span></span></label>
-          <label class="radio-card"><input type="radio" name="cad" value="custom"><span><b>Custom — you choose</b><span>Pick how many texts and over how long.</span>
+          <label>How many texts?</label>
+          <label class="radio-card sel"><input type="radio" name="cad" value="standard" checked><span><b>Standard — 5 texts (recommended)</b><span>Short, question-first messages. Stops the moment they reply.</span></span></label>
+          <label class="radio-card"><input type="radio" name="cad" value="gentle"><span><b>Gentle — 3 texts</b><span>For customers you don't want to nudge as often.</span></span></label>
+          <label class="radio-card"><input type="radio" name="cad" value="custom"><span><b>Custom — you choose</b><span>Pick how many texts.</span>
             <span class="customrhythm" id="customRhythm" style="display:none">
-              <select id="cTouches" onchange="updateCadPreview()"><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option></select> texts over
-              <select id="cDays" onchange="updateCadPreview()"><option>7</option><option>10</option><option selected>14</option><option>21</option><option>30</option></select> days
+              <select id="cTouches" onchange="renderCadence()"><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option><option>7</option></select> texts
             </span></span></label>
-          <div class="hint" id="cadPreview" style="margin-top:10px"></div>
-          <div class="switchrow" style="padding:8px 0 0"><button class="switch on" id="wkndSwitch" onclick="this.classList.toggle('on');updateCadPreview()" role="switch" aria-checked="true" aria-label="Send on weekends"></button>Send on weekends</div>
+          <div class="switchrow" style="padding:8px 0 0"><button class="switch on" id="wkndSwitch" onclick="this.classList.toggle('on');renderCadence()" role="switch" aria-checked="true" aria-label="Send on weekends"></button>Send on weekends</div>
         </div>
         <div class="field">
-          <label>When an estimate has multiple options, which should the assistant focus on?</label>
-          <select id="optionPref" style="width:100%;font-size:13px;border:1px solid var(--border-2);border-radius:8px;padding:8px 10px;background:#fff">
-            <option value="first">The first option — we drag the one to push to the front</option>
-            <option value="highest">The highest-value option</option>
-            <option value="lowest">The lowest-price option</option>
-          </select>
-          <div class="hint">Housecall Pro lets you reorder an estimate's options — the assistant treats the first as your recommendation.</div>
+          <label>When each estimate gets its texts</label>
+          <div id="cadViz"></div>
+          <div class="hint" style="margin-top:8px">Days are counted from when <b>each</b> estimate enters the campaign — not calendar dates — because new estimates keep joining. The first two texts are a day apart, then every other day.</div>
         </div>
+        <div class="backlog-callout" id="backlogBox">
+          <b>Include the <span id="backlogN">7</span> estimates already in <span id="backlogSeg">this audience</span>?</b>
+          These were sent before today. We'll spread their first texts over the next 3 days (business hours only) instead of blasting them at once.
+          <div class="switchrow" style="padding-bottom:0"><button class="switch on" id="backlogSwitch" onclick="this.classList.toggle('on')" role="switch" aria-checked="true" aria-label="Include existing estimates"></button>Yes, work the backlog <span class="t-muted">— this is usually where the money is</span></div>
+        </div>
+      </div>
+      <div id="wstep3" hidden>
         <div class="field">
           <label>Topics the assistant can bring up</label>
           <div class="topic" style="border-top:none;background:var(--muted-30);border:1px solid var(--border);border-radius:10px;padding:11px 13px;margin-bottom:8px">
@@ -507,38 +468,35 @@
           <div class="segmented" id="toneSeg" role="group" aria-label="Tone"></div>
         </div>
         <div class="field">
+          <label>When an estimate has multiple options, which should the assistant focus on?</label>
+          <select id="optionPref" style="width:100%;font-size:13px;border:1px solid var(--border-2);border-radius:8px;padding:8px 10px;background:#fff">
+            <option value="first">The first option — we drag the one to push to the front</option>
+            <option value="highest">The highest-value option</option>
+            <option value="lowest">The lowest-price option</option>
+          </select>
+          <div class="hint">Housecall Pro lets you reorder an estimate's options — the assistant treats the first as your recommendation.</div>
+        </div>
+        <div class="field">
           <label>Anything specific to mention or avoid? <span class="t-muted" style="font-weight:400">(optional)</span></label>
           <textarea id="guidance" maxlength="200" placeholder="e.g. We don't service pools. Feel free to mention our 5-star Google rating."></textarea>
         </div>
         <div class="lockrow" style="align-items:flex-start">🔒 Built in, can't be changed: never offers a discount, never quotes a specific monthly payment, only answers from the estimate, and hands warm leads to your team instead of closing the deal itself.</div>
-      </div>
-      <div id="wstep3" hidden>
-        <div class="field">
-          <label>When does it stop for a customer?</label>
-          <div style="display:flex;flex-direction:column;gap:7px">
-            <div class="lockrow" style="color:var(--text-2);padding:0">✓ Your assistant hands them off as a warm lead</div>
+        <div class="field" style="margin-top:16px">
+          <label>When the assistant stops for a customer <span class="t-muted" style="font-weight:400">(automatic)</span></label>
+          <div class="sumbox" style="display:flex;flex-direction:column;gap:7px">
+            <div class="lockrow" style="color:var(--text-2);padding:0">✓ It hands them off as a warm lead</div>
             <div class="lockrow" style="color:var(--text-2);padding:0">✓ The estimate is marked sold or lost</div>
+            <div class="lockrow" style="color:var(--text-2);padding:0">✓ They decline — the assistant asks why (1 price · 2 competitor · 3 timing · 4 changed their mind) and stops</div>
             <div class="lockrow" style="color:var(--text-2);padding:0">✓ They ask you to stop — in any wording</div>
             <div class="lockrow" style="color:var(--text-2);padding:0">✓ You exclude them from rehashing</div>
             <div class="lockrow" style="color:var(--text-2);padding:0">✓ All follow-ups have been sent</div>
           </div>
         </div>
-        <div class="field" id="reentryField">
-          <label>If this customer gets another estimate later, follow up again?</label>
-          <label class="radio-card"><input type="radio" name="re" value="never"><span><b>Never</b><span>One follow-up sequence per customer, ever.</span></span></label>
-          <label class="radio-card sel"><input type="radio" name="re" value="90" checked><span><b>Only after 90 days (recommended)</b><span>New estimates re-enter, but never back-to-back.</span></span></label>
-          <label class="radio-card"><input type="radio" name="re" value="always"><span><b>Always</b><span>Every new matching estimate starts a fresh follow-up.</span></span></label>
-        </div>
-        <div class="backlog-callout" id="backlogBox">
-          <b>Include the <span id="backlogN">7</span> estimates already in <span id="backlogSeg">these segments</span>?</b>
-          These were sent before today. We'll spread their first texts over the next 3 days (business hours only) instead of blasting them at once.
-          <div class="switchrow" style="padding-bottom:0"><button class="switch on" id="backlogSwitch" onclick="this.classList.toggle('on')" role="switch" aria-checked="true" aria-label="Include existing estimates"></button>Yes, work the backlog <span class="t-muted">— this is usually where the money is</span></div>
-        </div>
       </div>
     </div>
     <div class="drawer-f">
       <button class="btn btn-outline" onclick="wizBack()" id="wBack" style="margin-right:auto">Cancel</button>
-      <button class="btn btn-primary" onclick="wizNext()" id="wNext">Next: assistant behavior</button>
+      <button class="btn btn-primary" onclick="wizNext()" id="wNext">Next: follow-up rhythm</button>
     </div>
   </aside>
 
@@ -592,13 +550,13 @@ const estimates=[
  {name:"Angela Wu",job:"Duct Repair",amt:3400,age:33,cust:"Residential",tags:["Member"],status:"open",mobile:true,emailOk:true,phone:"(512) 555-0117"},
  {name:"Hector Alvarez",job:"AC Replacement",amt:14750,age:67,cust:"Residential",tags:["no-AI"],status:"open",mobile:true,emailOk:true,phone:"(512) 555-0161"},
  {name:"Janet Miller",job:"Water Heater",amt:2900,age:96,cust:"Residential",tags:[],status:"open",mobile:false,emailOk:true,phone:"(512) 555-0108"},
- {name:"Frank O'Neal",job:"Furnace Repair",amt:840,age:35,cust:"Residential",tags:[],status:"open",mobile:true,emailOk:false,phone:"(512) 555-0176"},
+ {name:"Frank O'Neal",job:"Furnace Repair",amt:840,age:35,cust:"Residential",tags:[],status:"lost",mobile:true,emailOk:false,phone:"(512) 555-0176"},
  {name:"Lisa Chen",job:"AC Replacement",amt:11200,age:44,cust:"Residential",tags:["Member"],status:"open",mobile:true,emailOk:true,phone:"(512) 555-0153"},
  {name:"Marcus Boyd",job:"Duct Repair",amt:5100,age:39,cust:"Residential",tags:[],status:"open",mobile:true,emailOk:true,phone:"(512) 555-0139"},
  {name:"Sofia Ramos",job:"Water Heater",amt:2600,age:31,cust:"Residential",tags:[],status:"open",mobile:true,emailOk:true,phone:"(512) 555-0121"},
  {name:"Greenline Offices LLC",job:"AC Replacement",amt:28400,age:48,cust:"Commercial",tags:[],status:"open",mobile:true,emailOk:true,phone:"(512) 555-0190"},
  {name:"Taco Bueno #114",job:"Duct Repair",amt:7300,age:36,cust:"Commercial",tags:[],status:"open",mobile:true,emailOk:true,phone:"(512) 555-0114"},
- {name:"Bill Hartman",job:"Furnace Repair",amt:1420,age:22,cust:"Residential",tags:[],status:"open",mobile:true,emailOk:true,phone:"(512) 555-0187"},
+ {name:"Bill Hartman",job:"Furnace Repair",amt:1420,age:22,cust:"Residential",tags:[],status:"lost",mobile:true,emailOk:true,phone:"(512) 555-0187"},
  {name:"Nadia Karim",job:"AC Replacement",amt:10800,age:12,cust:"Residential",tags:[],status:"open",mobile:true,emailOk:true,phone:"(512) 555-0168"},
  {name:"Owen Fitzgerald",job:"Water Heater",amt:2150,age:9,cust:"Residential",tags:[],status:"open",mobile:true,emailOk:true,phone:"(512) 555-0142"},
  {name:"Renee Dubois",job:"AC Replacement",amt:13900,age:105,cust:"Residential",tags:[],status:"open",mobile:true,emailOk:true,phone:"(512) 555-0195"},
@@ -666,30 +624,24 @@ function money(n){return "$"+n.toLocaleString()}
 
 /* ================= Stores ================= */
 const R=(field,op,value)=>({field,op,value});
-let segments=[
- {id:1,name:"Aging residential (30+ days)",filters:{mode:"all",include:[R("status","is","Open"),R("created","more than","30"),R("cust","is","Residential")],exclude:[R("tag","is","no-AI")]}},
- {id:2,name:"Commercial · open 14+ days",filters:{mode:"all",include:[R("status","is","Open"),R("created","more than","14"),R("cust","is","Commercial")],exclude:[R("tag","is","no-AI")]}},
- {id:3,name:"Dormant · 6+ months",filters:{mode:"all",include:[R("status","is","Open"),R("created","more than","180")],exclude:[R("tag","is","no-AI")]}},
- {id:4,name:"Water heater quotes (14+ days)",filters:{mode:"all",include:[R("status","is","Open"),R("created","more than","14"),R("jobtype","is","Water Heater")],exclude:[R("tag","is","no-AI")]}}
-];
-let nextSegId=5;
 /* Topics the assistant may proactively raise (each opt-in, like the old financing toggle) */
 const TOPICS=[
  {id:"financing",label:"Financing options",desc:"When price is the holdup, mention monthly-payment options and share your financing link.",def:true},
  {id:"priceIncrease",label:"Price increase / quote expiring",desc:"An honest nudge that equipment prices keep rising — and offer a fresh quote.",def:true},
  {id:"warranty",label:"Warranty & what's included",desc:"Reassure what the price covers and the warranty — straight from the estimate.",def:true},
+ {id:"scheduling",label:"Scheduling urgency",desc:"When the schedule's filling up, nudge them to book before wait times get longer — the top reason customers commit in peak season.",def:false},
  {id:"seasonal",label:"Seasonal timing",desc:"\"Beat the summer rush\" — book before peak season. Great for dormant re-engagement.",def:false},
  {id:"maintenance",label:"Maintenance plan / membership",desc:"Invite customers who aren't members yet to your service plan.",def:false}
 ];
 const TONES=[["friendly","Friendly & casual"],["professional","Warm & professional"],["direct","Short & to the point"]];
 function defaultTopics(){return Object.fromEntries(TOPICS.map(t=>[t.id,t.def]))}
+/* Merged model: each campaign owns its audience (filters) directly — no separate Segments object. */
 let campaigns=[
- {id:1,name:"Residential rehash",segIds:[1],status:"active",rhythm:"5 texts over 14 days",topics:{financing:true,priceIncrease:true,warranty:true,seasonal:false,maintenance:false},tone:"professional",guidance:"",reentry:"Only after 90 days",stats:{cad:24,rep:17,hand:8}},
- {id:2,name:"Commercial follow-up",segIds:[2],status:"paused",rhythm:"3 texts over 10 days",topics:{financing:false,priceIncrease:true,warranty:true,seasonal:false,maintenance:false},tone:"professional",guidance:"",reentry:"Never",stats:{cad:6,rep:4,hand:2}},
- {id:3,name:"Dormant winter revival",segIds:[3],status:"draft",rhythm:"3 texts over 21 days",topics:{financing:true,priceIncrease:true,warranty:false,seasonal:true,maintenance:false},tone:"professional",guidance:"",reentry:"Only after 90 days",stats:{cad:0,rep:0,hand:0},blocked:"Dormant contacts need a consent record, a purchase in the last 18 months, or a Do-Not-Call check. 41 of 63 qualify so far."}
+ {id:1,name:"Residential rehash",filters:{mode:"all",include:[R("status","is","Open"),R("created","more than","30"),R("cust","is","Residential")],exclude:[R("tag","is","no-AI")]},status:"active",rhythm:"5 texts over 8 days",topics:{financing:true,priceIncrease:true,warranty:true,scheduling:true,seasonal:false,maintenance:false},tone:"professional",guidance:"",stats:{cad:24,rep:17,hand:8}},
+ {id:2,name:"Commercial follow-up",filters:{mode:"all",include:[R("status","is","Open"),R("created","more than","14"),R("cust","is","Commercial")],exclude:[R("tag","is","no-AI")]},status:"paused",rhythm:"3 texts over 4 days",topics:{financing:false,priceIncrease:true,warranty:true,scheduling:true,seasonal:false,maintenance:false},tone:"professional",guidance:"",stats:{cad:6,rep:4,hand:2}},
+ {id:3,name:"Dormant winter revival",filters:{mode:"all",include:[R("status","is","Open"),R("created","more than","180")],exclude:[R("tag","is","no-AI")]},status:"draft",rhythm:"3 texts over 4 days",topics:{financing:true,priceIncrease:true,warranty:false,scheduling:true,seasonal:true,maintenance:false},tone:"professional",guidance:"",stats:{cad:0,rep:0,hand:0},blocked:"Dormant contacts need a consent record, a purchase in the last 18 months, or a Do-Not-Call check. 41 of 63 qualify so far."}
 ];
 let nextCampId=4;
-function segUsedBy(id){return campaigns.filter(c=>c.segIds.includes(id)&&c.status!=="archived").map(c=>c.name)}
 
 /* ================= Conversations (threads) ================= */
 const conversations={
@@ -705,7 +657,7 @@ const conversations={
    ["cust","It's a lot at once. do you guys do payments?","Day 5 · 6:44 PM"],
    ["agent","Totally understandable. Monthly payment options are available — you can check what you'd qualify for here (no credit impact): summitair.wisetack.us/prequal. Want me to have Roberto give you a call to walk through it?","Day 5 · 6:45 PM"],
    ["cust","yes please, after 5pm works","Day 5 · 6:47 PM"],
-   ["sys","Warm-lead handoff sent to Roberto · cadence stopped"]
+   ["sys","Warm-lead handoff sent to Roberto · follow-ups stopped"]
   ]},
  "R-1038":{name:"Dave Kowalski",ref:"#R-1038",
   estimate:{job:"AC Replacement — 2.5-ton, 15 SEER",amt:"$9,800",age:"41 days",status:"Open",opt:"Single option"},
@@ -718,7 +670,7 @@ const conversations={
    ["agent","The quoted system is a 2.5-ton, 15-SEER unit — that's the efficiency step up from your current 10-SEER. The $9,800 includes install and a 10-year parts warranty.","Day 3 · 12:23 PM"],
    ["cust","Could you get it in before end of month?","Day 3 · 12:31 PM"],
    ["agent","I'll have the team confirm scheduling — someone will call you today. Anything else you'd like me to pass along?","Day 3 · 12:31 PM"],
-   ["sys","Warm-lead handoff sent to Roberto · cadence stopped"]
+   ["sys","Warm-lead handoff sent to Roberto · follow-ups stopped"]
   ]},
  "R-1029":{name:"Judy Blalock",ref:"#R-1029",
   estimate:{job:"Water Heater — 50-gal gas",amt:"$2,780",age:"61 days",status:"Open",opt:"Single option"},
@@ -729,7 +681,7 @@ const conversations={
    ["agent","Hi Judy, it's Summit Air & Heat. Checking in on the water heater quote — happy to answer any questions.","Day 3 · 10:30 AM"],
    ["cust","Actually yes, it started making a rumbling noise last week. How soon could you do it","Day 4 · 8:02 AM"],
    ["agent","Sorry to hear that — rumbling usually means sediment buildup, good timing to replace. I'll have the team call you today to get you scheduled. The quote ($2,780 installed) still stands.","Day 4 · 8:03 AM"],
-   ["sys","Warm-lead handoff sent to Roberto + office · cadence stopped"]
+   ["sys","Warm-lead handoff sent to Roberto + office · follow-ups stopped"]
   ]},
  "R-1051":{name:"Priya Patel",ref:"#R-1051",
   estimate:{job:"Water Heater — 40-gal gas",amt:"$2,350",age:"38 days",status:"Open",opt:"Single option"},
@@ -761,23 +713,50 @@ const conversations={
    ["agent","Hi Tom, it's Summit Air & Heat. Just making sure you had a great experience — any questions on the furnace quote?","Day 3 · 9:00 AM"],
    ["agent","Hi Tom, quick check-in — happy to answer anything about the furnace repair quote. Want me to have the team hold a spot before the season rush?","Day 7 · 10:00 AM"],
    ["sys","No reply yet · next text Thu 9:00 AM"]
+  ]},
+ "R-1044":{name:"Frank O'Neal",ref:"#R-1044",
+  estimate:{job:"Furnace Repair — igniter",amt:"$840",age:"35 days",status:"Lost",opt:"Single option"},
+  phone:"(512) 555-0176",addr:"140 Ridgeview Dr, Austin TX 78753",
+  summary:"Replied that he went with another company. The assistant asked why with a numbered menu — he picked 2 (competitor). Marked declined; no further messages.",
+  handoff:null,
+  chat:[
+   ["agent","Hi Frank, it's Summit Air & Heat — just following up on the furnace repair quote. Are you still considering it?","Day 3 · 9:20 AM"],
+   ["cust","no we already went with someone else","Day 6 · 11:04 AM"],
+   ["agent","Thanks for letting us know! Mind sharing why, so we can do better? Reply with a number: 1 Price · 2 Went with another company · 3 Timing / not right now · 4 Changed my mind","Day 6 · 11:05 AM"],
+   ["cust","2","Day 6 · 11:31 AM"],
+   ["agent","Appreciate it, Frank — we'll leave it there. If anything changes, we're one text away. Take care!","Day 6 · 11:31 AM"],
+   ["sys","Marked declined · reason: 2 · went with another company · follow-ups stopped"]
+  ]},
+ "R-1047":{name:"Bill Hartman",ref:"#R-1047",
+  estimate:{job:"Furnace Repair — heat exchanger",amt:"$1,420",age:"22 days",status:"Lost",opt:"Single option"},
+  phone:"(512) 555-0187",addr:"63 Sunset Ridge, Round Rock TX 78665",
+  summary:"Replied that the price was too high. The assistant captured the reason (1 · price) and stopped. Flagged declined for your win/loss tracking.",
+  handoff:null,
+  chat:[
+   ["agent","Hi Bill, it's Summit Air & Heat — following up on the furnace repair estimate. Any questions I can answer?","Day 3 · 10:10 AM"],
+   ["cust","honestly it's just too expensive right now","Day 5 · 7:12 PM"],
+   ["agent","Totally understand. So we can learn from it — reply with a number: 1 Price · 2 Went with another company · 3 Timing / not right now · 4 Changed my mind","Day 5 · 7:13 PM"],
+   ["cust","1","Day 5 · 7:20 PM"],
+   ["agent","Thanks, Bill. We'll stop here — if budget changes, we offer monthly payment options anytime. Take care!","Day 5 · 7:20 PM"],
+   ["sys","Marked declined · reason: 1 · price · follow-ups stopped"]
   ]}
 };
 
 /* ================= Roster (enrollment stages) ================= */
 const STAGES={
- queued:{label:"Queued",badge:"badge-gray"},
- cadence:{label:"In cadence",badge:"badge-blue"},
- talking:{label:"Talking to assistant",badge:"badge-blue"},
- warm:{label:"Warm — call them",badge:"badge-green"},
+ queued:{label:"Scheduled",badge:"badge-gray"},
+ cadence:{label:"In queue",badge:"badge-blue"},
+ hot:{label:"Hot Lead",badge:"badge-green"},
+ interested:{label:"Interested",badge:"badge-amber"},
  sold:{label:"Sold",badge:"badge-green"},
+ declined:{label:"Declined",badge:"badge-outline"},
  stopped:{label:"Stopped",badge:"badge-outline"}
 };
 let roster=[
- {ref:"#R-1029",name:"Judy Blalock",est:"Water Heater",val:"$2,780",campId:1,stage:"warm",oppStatus:"ready",replied:true,wait:"1d 3h",next:"Your team calls her — urgent: unit making noise",conv:"R-1029"},
- {ref:"#R-1042",name:"Maria Gonzalez",est:"AC Replacement",val:"$12,400",campId:1,stage:"warm",oppStatus:"needs_info",replied:true,wait:"2h 15m",next:"Roberto calls after 5 PM about financing",conv:"R-1042"},
- {ref:"#R-1038",name:"Dave Kowalski",est:"AC Replacement",val:"$9,800",campId:1,stage:"warm",oppStatus:"ready",replied:true,wait:"5h 40m",next:"Roberto confirms install timing",conv:"R-1038"},
- {ref:"#R-1051",name:"Priya Patel",est:"Water Heater",val:"$2,350",campId:1,stage:"talking",replied:true,wait:"—",next:"Replied 20 min ago — assistant answering a question about haul-away",conv:"R-1051"},
+ {ref:"#R-1029",name:"Judy Blalock",est:"Water Heater",val:"$2,780",campId:1,stage:"hot",replied:true,wait:"1d 3h",next:"Your team calls her — urgent: unit making noise, wants it done soon",conv:"R-1029"},
+ {ref:"#R-1042",name:"Maria Gonzalez",est:"AC Replacement",val:"$12,400",campId:1,stage:"hot",replied:true,wait:"2h 15m",next:"Roberto calls after 5 PM — ready to move on financing",conv:"R-1042"},
+ {ref:"#R-1038",name:"Dave Kowalski",est:"AC Replacement",val:"$9,800",campId:1,stage:"interested",replied:true,wait:"5h 40m",next:"Had a question on the system — answer it and nudge to book",conv:"R-1038"},
+ {ref:"#R-1051",name:"Priya Patel",est:"Water Heater",val:"$2,350",campId:1,stage:"interested",replied:true,wait:"20m",next:"Asked if haul-away is included — quick reply, then nudge to book",conv:"R-1051"},
  {ref:"#R-1033",name:"Tom Reyes",est:"Furnace Repair",val:"$1,180",campId:1,stage:"cadence",replied:false,wait:"—",next:"Text 2 of 5 sent · next text Thu 9:00 AM",conv:"R-1033"},
  {ref:"#R-1032",name:"Angela Wu",est:"Duct Repair",val:"$3,400",campId:1,stage:"cadence",replied:false,wait:"—",next:"Text 1 of 5 sent · next text Tue 10:00 AM",conv:null},
  {ref:"#R-1036",name:"Marcus Boyd",est:"Duct Repair",val:"$5,100",campId:1,stage:"cadence",replied:false,wait:"—",next:"Text 3 of 5 sent · next text Fri 4:00 PM",conv:null},
@@ -786,13 +765,15 @@ let roster=[
  {ref:"#R-1020",name:"Aaron Schultz",est:"AC Replacement",val:"$9,450",campId:1,stage:"sold",replied:true,wait:"—",next:"Booked with Roberto 🎉 — counted in recovered revenue",conv:null},
  {ref:"#R-1046",name:"Sam Nguyen",est:"Furnace Repair",val:"$960",campId:1,stage:"stopped",replied:true,wait:"—",next:"Said stop — never contacted again",conv:"R-1046"},
  {ref:"#R-1018",name:"Dana Whitfield",est:"Furnace Repair",val:"$1,310",campId:1,stage:"stopped",replied:false,wait:"—",next:"All 5 texts sent, no reply — resting until re-entry window",conv:null},
+ {ref:"#R-1044",name:"Frank O'Neal",est:"Furnace Repair",val:"$840",campId:1,stage:"declined",declineReason:"2 · went with another company",replied:true,wait:"—",next:'Declined — "2 · went with another company." No more messages.',conv:"R-1044"},
+ {ref:"#R-1047",name:"Bill Hartman",est:"Furnace Repair",val:"$1,420",campId:1,stage:"declined",declineReason:"1 · price",replied:true,wait:"—",next:'Declined — "1 · price." No more messages.',conv:"R-1047"},
  {ref:"#R-1040",name:"Greenline Offices LLC",est:"AC Replacement",val:"$28,400",campId:2,stage:"cadence",replied:false,wait:"—",next:"Campaign stopped — frozen at text 2 of 3 until you resume",conv:null},
  {ref:"#R-1041",name:"Taco Bueno #114",est:"Duct Repair",val:"$7,300",campId:2,stage:"cadence",replied:false,wait:"—",next:"Campaign stopped — frozen at text 1 of 3 until you resume",conv:null}
 ];
 function rosterOutcome(r){
   if(!r.replied)return ["No answer","badge-gray"];
-  if(r.stage==="warm"||r.stage==="sold")return ["Completed","badge-green"];
-  if(r.stage==="talking")return ["In progress","badge-blue"];
+  if(r.stage==="hot"||r.stage==="sold")return ["Completed","badge-green"];
+  if(r.stage==="interested")return ["In progress","badge-blue"];
   return ["Stopped","badge-outline"];
 }
 
@@ -837,7 +818,7 @@ const leadConvs=[
 
 /* ================= Global state ================= */
 let iaOption="one", curPage="rehash", curTab="overview";
-let oppTab="all", oppStatusTab="all", rlTab="warm", rlCampFilter="all", convTab="all", convCampFilter="all";
+let oppTab="attention", oppStatusTab="attention", rlTab="attention", rlCampFilter="all", convTab="all", convCampFilter="all";
 let convFilters={
  intents:{service_request:true,customer_support:true,spam:true,other:true,pending:true,rehash:true},
  channels:{Voice:true,Chat:true,SMS:true},
@@ -845,63 +826,16 @@ let convFilters={
  noAnswer:false};
 
 /* ================= Rehash section tabs ================= */
-function showTab(id){
-  curTab=id;
-  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active",t.dataset.tab===id));
-  ["overview","segments","campaigns"].forEach(s=>document.getElementById("tab-"+s).hidden=(s!==id));
-  if(id==="segments")renderSegList();
-  if(id==="campaigns")renderCampaigns();
-  if(id==="overview")renderOverview();
-}
+function renderRehashPage(){renderOverview();renderCampaigns();}
 function renderOverview(){
   const root=document.getElementById("overviewRoot");
-  if(iaOption==="three"){
-    const F={warm:3,decide:9,excluded:12,unsent:4,talking:1,following:21};
-    const action=F.warm+F.decide+F.excluded+F.unsent;
-    const total=action+F.talking+F.following;
-    const bucket=(cls,ico,n,title,desc,btn)=>`
-      <div class="bucket ${cls}">
-        <span class="ico">${ico}</span><span class="bn">${n}</span>
-        <div class="bmid"><div class="bt">${title}</div><div class="bd">${desc}</div></div>
-        ${btn||""}
-      </div>`;
-    const go=(t,label)=>`<button class="btn btn-outline btn-sm" onclick="rlTab='${t}';showPage('rl')">${label} →</button>`;
-    root.innerHTML=`
-     <div class="zero-hero">
-       <div><div class="big">${action}</div><div class="cap">need a call or a decision from you</div></div>
-       <div class="arrow">→</div>
-       <div><div class="goal">0</div><div class="cap">the goal</div></div>
-       <div style="flex:1;min-width:180px;text-align:right">
-         <div style="font-size:13px;color:var(--text-2)"><b>${total}</b> open estimates in all · the assistant is handling <b>${F.talking+F.following}</b> of them</div>
-         <div style="font-size:11.5px;color:var(--text-3);margin-top:3px">Every open estimate has a known place. Get the number on the left to zero.</div>
-       </div>
-     </div>
-     <div class="section-lbl">Needs you — work these to zero</div>
-     ${bucket("act warm","🔥",F.warm,"Warm — call now","The assistant warmed them up and they're interested. Call to close.",go("warm","Call list"))}
-     ${bucket("act","⏰",F.decide,"30+ days, no reply — refresh or close?","Campaign's done and the quote's past its 30-day validity. Your call.",`<button class="btn btn-outline btn-sm" onclick="toast('Would list the 30+ day estimates so you can refresh the quote or close each one')">Decide →</button>`)}
-     ${bucket("act","🚫",F.excluded,"Excluded from the assistant — your team follows up","You tagged these no-AI / don't-rehash. They still need a human.",`<button class="btn btn-outline btn-sm" onclick="toast('Would list the excluded estimates for manual follow-up')">View →</button>`)}
-     ${bucket("act","📤",F.unsent,"Created but not sent (>7 days)","Sitting unsent in Housecall Pro. Send them out — the clock hasn't even started.",`<button class="btn btn-outline btn-sm" onclick="toast('Would list estimates created but never sent')">View →</button>`)}
-     <div class="section-lbl">The assistant's got these — nothing for you to do</div>
-     ${bucket("","💬",F.talking,"In conversation","The customer is replying to the assistant right now.",go("talking","View"))}
-     ${bucket("","📨",F.following,"Following up — no reply yet","Getting texted on schedule. Drops out the moment they're sold or reply.",go("cadence","View"))}
-     <div class="pagefoot" style="margin-top:16px">✅ 8 estimates closed this month via rehash · <b>$7,850</b> recovered</div>`;
-    return;
-  }
-  /* A / B — current dashboard */
   root.innerHTML=`
     <div class="stat-grid">
       <div class="card stat"><div class="lbl">Open estimates being worked</div><div class="val">38</div><div class="sub">of 214 imported · 12 excluded by your rules</div></div>
       <div class="card stat"><div class="lbl">Reply rate (30 days)</div><div class="val">47%</div><div class="sub"><span class="delta">▲ 9pts</span> vs first two weeks</div></div>
-      <div class="card stat"><div class="lbl">Warm leads handed off</div><div class="val">11</div><div class="sub">3 waiting on your team ↓</div></div>
+      <div class="card stat"><div class="lbl">Leads handed off</div><div class="val">11</div><div class="sub">Warm leads passed to your team to close</div></div>
       <div class="card stat"><div class="lbl">Recovered revenue</div><div class="val">$7,850</div><div class="sub">Estimates sold within 30 days of assistant contact</div></div>
-    </div>
-    <div id="warmPointer" style="margin-top:24px"></div>
-    <div class="section-lbl">Campaigns at a glance</div>
-    <div class="tablewrap"><table>
-      <thead><tr><th>Campaign</th><th>Segments</th><th style="width:110px">In cadence</th><th style="width:100px">Replies</th><th style="width:100px">Handoffs</th><th style="width:120px">Status</th></tr></thead>
-      <tbody id="campGlance"></tbody>
-    </table></div>`;
-  renderPointer();renderGlance();
+    </div>`;
 }
 
 /* ================= Overview ================= */
@@ -915,52 +849,16 @@ function renderGlance(){
   document.getElementById("campGlance").innerHTML=campaigns.map(c=>`
    <tr class="rowbtn" onclick="openCampDrawer(${c.id})">
      <td class="t-name">${c.name}</td>
-     <td class="t-muted">${c.segIds.map(i=>segments.find(s=>s.id===i)?.name).filter(Boolean).join(" + ")}</td>
+     <td class="t-muted" style="max-width:280px;font-size:12px">${summarize(c.filters)}</td>
      <td class="t-num">${c.status==="draft"?"—":c.stats.cad}</td>
      <td class="t-num">${c.status==="draft"?"—":c.stats.rep}</td>
      <td class="t-num">${c.status==="draft"?"—":c.stats.hand}</td>
      <td>${statusBadge(c)}</td>
    </tr>`).join("");
 }
-function renderPointer(){
-  if(!document.getElementById("warmPointer"))return;
-  const warmN=roster.filter(r=>r.stage==="warm").length;
-  const one=iaOption==="one";
-  const label=one?"Opportunities":"Rehashed Leads", target=one?"opps":"rl";
-  document.getElementById("warmPointer").innerHTML=`
-   <div class="card" style="padding:16px 18px;display:flex;align-items:center;gap:14px;border-color:var(--green-bd);background:var(--green-bg)">
-     <div style="font-size:22px">🔔</div>
-     <div style="flex:1">
-       <div style="font-weight:600;color:var(--green-fg)">${warmN} rehashed leads are waiting on your team</div>
-       <div style="font-size:12.5px;color:var(--green-fg);opacity:.85">The assistant handed them off — they're in <b>${label}</b>${one?" alongside everything else that needs a human":""}. Nothing to work here.</div>
-     </div>
-     <button class="btn btn-primary" onclick="${one?"setOppSource('rehash');":""}showPage('${target}')">Open ${label} →</button>
-   </div>`;
-}
 
-/* ================= Segments list + drawer ================= */
-function renderSegList(){
-  document.getElementById("segListRows").innerHTML=segments.map(s=>{
-    const used=segUsedBy(s.id);
-    return `<tr class="rowbtn" onclick="openSegDrawer(${s.id})">
-     <td class="t-name">${s.name}</td>
-     <td class="t-muted">${summarize(s.filters)}</td>
-     <td><span class="badge badge-blue t-num">${matchRows(s.filters).length} now</span></td>
-     <td class="t-muted">${used.length?used.join(", "):"—"}</td>
-     <td><span style="color:var(--brand);font-weight:500;font-size:12.5px">Edit →</span></td>
-   </tr>`}).join("");
-}
-let editingSegId=null,tempSeg=null;
-function openSegDrawer(id){
-  editingSegId=id;
-  const s=id?segments.find(x=>x.id===id):null;
-  tempSeg=s?JSON.parse(JSON.stringify(s.filters))
-          :{mode:"all",include:[R("status","is","Open"),R("created","more than","30")],exclude:[R("tag","is","no-AI")]};
-  document.getElementById("segName").value=s?s.name:"";
-  document.getElementById("segDrawerKicker").textContent=s?"EDIT SEGMENT":"NEW SEGMENT";
-  renderRuleUI();
-  openDrawerEl("segDrawer");
-}
+/* ================= Audience rule builder (lives inside the campaign wizard) ================= */
+let tempSeg=null;
 function setMode(m){tempSeg.mode=m;renderRuleUI()}
 function addRule(kind){
   tempSeg[kind].push(kind==="include"?R("jobtype","is","AC Replacement"):R("tag","is","no-AI"));
@@ -1037,14 +935,6 @@ function restoreExc(name){
   refreshAll();
   toast(`${name} is back in rehashing — they'll be worked as soon as they match a campaign's segment`);
 }
-function saveSegment(){
-  const name=document.getElementById("segName").value.trim()||"Untitled segment";
-  if(editingSegId){const s=segments.find(x=>x.id===editingSegId);s.name=name;s.filters=tempSeg}
-  else segments.push({id:nextSegId++,name,filters:tempSeg});
-  closeAllDrawers();showPage("rehash");showTab("segments");
-  toast(`Segment "${name}" saved — ${matchRows(tempSeg).length} estimates match right now`);
-}
-
 /* ================= Sold / exclude ================= */
 let excTarget=null;
 function markSold(name){
@@ -1066,9 +956,8 @@ function confirmExc(){
   toast(`${excTarget} excluded from rehash (${reason.toLowerCase()}) — the assistant won't text them again`);
 }
 function refreshAll(){
-  if(tempSeg&&document.getElementById("segDrawer").classList.contains("open"))renderPreview();
-  renderSegList();renderCampaigns();
-  if(curPage==="rehash"&&curTab==="overview")renderOverview();
+  if(tempSeg&&document.getElementById("wizDrawer").classList.contains("open"))renderPreview();
+  if(curPage==="rehash")renderRehashPage();else renderCampaigns();
   if(curPage==="opps")renderOppsPage();
   if(curPage==="rl")renderRLPage();
   if(curPage==="conv")renderConvPage();
@@ -1094,28 +983,22 @@ function pauseBtn(c){
 function matchIncOnly(f){return estimates.filter(e=>
   f.include.length?(f.mode==="any"?f.include.some(r=>evalRule(e,r)):f.include.every(r=>evalRule(e,r))):true)}
 function excludedCount(c){
-  const inSet=new Set(),allSet=new Set();
-  c.segIds.forEach(id=>{const s=segments.find(x=>x.id===id);if(!s)return;
-    matchRows(s.filters).forEach(e=>inSet.add(e.name));
-    matchIncOnly(s.filters).forEach(e=>allSet.add(e.name))});
-  let n=0;allSet.forEach(x=>{if(!inSet.has(x))n++});return n}
+  const inSet=new Set(matchRows(c.filters).map(e=>e.name));
+  let n=0;matchIncOnly(c.filters).forEach(e=>{if(!inSet.has(e.name))n++});return n}
 function renderCampaigns(){
   document.getElementById("campRows").innerHTML=campaigns.map(c=>{
-    const segs=c.segIds.map(i=>segments.find(s=>s.id===i)).filter(Boolean);
     const arch=c.status==="archived";
     return `<tr class="rowbtn" ${arch?'style="opacity:.55"':""} onclick="openCampDrawer(${c.id})">
       <td class="t-name">${c.name}${c.blocked?' <span title="'+c.blocked+'">🔒</span>':""}</td>
-      <td>${segs.map(s=>`<span class="chip" style="margin:1px 2px 1px 0">${s.name} · ${matchRows(s.filters).length}</span>`).join("")}</td>
+      <td><span class="chip" style="margin:1px 2px 1px 0">${matchRows(c.filters).length} now</span><div class="t-muted" style="font-size:12px;margin-top:4px;line-height:1.45">${summarize(c.filters)}</div></td>
       <td class="t-muted">${c.rhythm}</td>
-      <td class="t-muted">Reply · sold · "stop"</td>
-      <td class="t-muted">${c.reentry}</td>
       <td>${statusBadge(c)}</td>
       <td class="t-num">${c.status==="draft"?"—":`<span style="color:var(--brand);font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:2px" title="See who's being rehashed" onclick="event.stopPropagation();showClientsFor(${c.id})">${c.stats.cad}</span>`}</td>
       <td class="t-num">${c.status==="draft"?"—":c.stats.rep}</td>
       <td class="t-num">${c.status==="draft"?"—":c.stats.hand}</td>
       <td class="t-num"><span title="Left out by your rules: no-AI tags, manual exclusions and opt-outs">${excludedCount(c)}</span></td>
       <td><div style="display:flex;gap:4px">${campActions(c)}</div></td>
-    </tr>`}).join("")||'<tr><td colspan="11"><div class="empty">No campaigns yet — create one from a segment.</div></td></tr>';
+    </tr>`}).join("")||'<tr><td colspan="9"><div class="empty">No campaigns yet — create your first one.</div></td></tr>';
 }
 let pauseTarget=null;
 function askPause(id){pauseTarget=id;document.getElementById("pauseTitle").textContent=`Stop "${campaigns.find(c=>c.id===id).name}"?`;document.getElementById("pauseModal").classList.add("open")}
@@ -1147,16 +1030,16 @@ function publishCamp(id){
 /* ================= Campaign drawer ================= */
 function openCampDrawer(id){
   const c=campaigns.find(x=>x.id===id);
-  const segs=c.segIds.map(i=>segments.find(s=>s.id===i)).filter(Boolean);
   document.getElementById("cdName").textContent=c.name;
   document.getElementById("cdBadges").innerHTML=statusBadge(c);
   document.getElementById("cdBody").innerHTML=`
    <div class="dsec"><h4>Audience</h4>
-     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">${segs.map(s=>`<span class="chip">${s.name} · ${matchRows(s.filters).length} now</span>`).join("")}</div>
-     <p class="hint">Estimates leave the follow-up the moment they stop matching — e.g. when marked sold.</p>
+     <div style="margin-bottom:8px"><span class="chip">${matchRows(c.filters).length} match now</span></div>
+     <div class="sumbox" style="margin-bottom:8px">${summarize(c.filters)}</div>
+     <p class="hint">Built into the campaign — no separate segment to keep in sync. Estimates leave the moment they stop matching (e.g. when marked sold).</p>
      <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="closeAllDrawers();showClientsFor(${c.id})">See who's being rehashed →</button></div>
    <div class="dsec"><h4>Follow-up rhythm</h4>
-     <dl class="dl"><dt>Cadence</dt><dd>${c.rhythm} · business hours only</dd><dt>Re-entry</dt><dd>${c.reentry}</dd></dl></div>
+     <dl class="dl"><dt>Cadence</dt><dd>${c.rhythm} · first two a day apart, then every other day · business hours only</dd></dl></div>
    <div class="dsec"><h4>What the assistant can bring up</h4>
      <div style="display:flex;flex-direction:column;gap:5px;font-size:13px">
        ${TOPICS.filter(t=>c.topics&&c.topics[t.id]).map(t=>`<div>✓ ${t.label}</div>`).join("")||'<div class="t-muted">Just answers questions — no extra topics</div>'}
@@ -1174,6 +1057,7 @@ function openCampDrawer(id){
      <div style="display:flex;flex-direction:column;gap:7px">
        <div class="lockrow" style="color:var(--text-2);padding:0">✓ Your assistant hands them off as a warm lead</div>
        <div class="lockrow" style="color:var(--text-2);padding:0">✓ The estimate is marked sold or lost</div>
+       <div class="lockrow" style="color:var(--text-2);padding:0">✓ They decline — the assistant asks why (1 price · 2 competitor · 3 timing · 4 changed their mind) and stops</div>
        <div class="lockrow" style="color:var(--text-2);padding:0">✓ They ask you to stop — in any wording</div>
        <div class="lockrow" style="color:var(--text-2);padding:0">✓ You exclude them from rehashing</div>
        <div class="lockrow" style="color:var(--text-2);padding:0">✓ All follow-ups have been sent</div>
@@ -1181,7 +1065,7 @@ function openCampDrawer(id){
    ${c.blocked?`<div class="dsec"><h4>Launch blocker</h4><div class="block-note">🔒 ${c.blocked}</div></div>`:""}
    <div class="dsec"><h4>Performance</h4>
      <div style="display:flex;gap:22px;font-variant-numeric:tabular-nums">
-       <div><div style="font-size:20px;font-weight:700">${c.stats.cad}</div><div class="t-muted">in cadence</div></div>
+       <div><div style="font-size:20px;font-weight:700">${c.stats.cad}</div><div class="t-muted">in queue</div></div>
        <div><div style="font-size:20px;font-weight:700">${c.stats.rep}</div><div class="t-muted">replies</div></div>
        <div><div style="font-size:20px;font-weight:700">${c.stats.hand}</div><div class="t-muted">handoffs</div></div>
      </div></div>`;
@@ -1218,7 +1102,7 @@ function openLeadDrawer(name){
   document.getElementById("dRef").textContent=(r?r.ref:(conv?conv.ref:"#—"));
   document.getElementById("dName").textContent=name;
   document.getElementById("dBadges").innerHTML=
-    `<span class="badge badge-outline">SMS</span><span class="badge badge-blue">Rehash</span>${st?`<span class="badge ${st.badge}">${r.stage==="warm"?'<span class="dot"></span>':""}${st.label}</span>`:""}`;
+    `<span class="badge badge-outline">SMS</span><span class="badge badge-blue">Rehash</span>${st?`<span class="badge ${st.badge}">${r.stage==="hot"||r.stage==="interested"?'<span class="dot"></span>':""}${st.label}</span>`:""}`;
   const phone=conv?conv.phone:(e?e.phone:"—");
   document.getElementById("dBody").innerHTML=`
    <div class="dsec"><h4>Contact details</h4>
@@ -1228,11 +1112,11 @@ function openLeadDrawer(name){
        <dt>Job</dt><dd>${conv?conv.estimate.job:(e?e.job:r?r.est:"—")}</dd>
        <dt>Amount</dt><dd>${conv?conv.estimate.amt:(r?r.val:e?money(e.amt):"—")}</dd>
        <dt>Sent</dt><dd>${conv?conv.estimate.age+" ago":(e?e.age+" days ago":"—")}</dd>
-       <dt>Status</dt><dd>${e?(e.status==="sold"?"Sold":e.excluded?"Excluded":"Open"):"Open"}</dd>
+       <dt>Status</dt><dd>${e?(e.status==="sold"?"Sold":e.status==="lost"?"Lost":e.excluded?"Excluded":"Open"):"Open"}</dd>
      </dl>
      ${estActions(name)}</div>
    ${r?`<div class="dsec"><h4>Rehash status</h4>
-     <dl class="dl"><dt>Campaign</dt><dd>${camp?camp.name:"—"}</dd><dt>Stage</dt><dd>${st.label}</dd><dt>What's next</dt><dd>${r.next}</dd></dl></div>`:""}
+     <dl class="dl"><dt>Campaign</dt><dd>${camp?camp.name:"—"}</dd><dt>Stage</dt><dd>${st.label}</dd>${r.declineReason?`<dt>Why declined</dt><dd>${r.declineReason}</dd>`:""}<dt>What's next</dt><dd>${r.next}</dd></dl></div>`:""}
    ${conv&&conv.summary?`<div class="dsec"><h4>Summary</h4><div class="sumbox">${conv.summary}</div></div>`:""}
    ${conv&&conv.handoff?`<div class="dsec"><h4>Handoff notification — what your team received</h4>
      <div class="notif"><div class="nh">🔔 Warm lead · sent to your notification contacts</div><div class="npv">${conv.handoff}</div></div></div>`:""}
@@ -1244,8 +1128,17 @@ function openLeadDrawer(name){
 /* ================= Page: Opportunities (A) / Service Requests (B) ================= */
 function setOppSource(k){
   oppTab=k;
-  oppStatusTab=k==="rehash"?"warm":"all";
+  oppStatusTab=k==="rehash"?"attention":k==="lead"?"attention":"all";
   renderOppsPage();
+}
+/* Captured-lead / service-request status grouping: needs_info + ready = needs attention */
+const SR_ATTN=s=>s==="needs_info"||s==="ready";
+function srMatch(status,tab){return tab==="all"?true:tab==="attention"?SR_ATTN(status):status===tab}
+/* Shared "what needs you vs informational" banner. kind: 'rehash' | 'captured' */
+function leadAttnBanner(kind,active){
+  if(active==="attention") return `<div class="attn-bar"><b>These need you.</b> ${kind==="rehash"?"The assistant warmed these leads up — call the Hot Leads to close, answer the Interested ones.":"A booking or more info is needed — your team's call."} Every other tab is just the assistant working, shown for visibility.</div>`;
+  if(active==="all") return `<div class="info-bar">Showing everything — only the <b>Needs attention</b> tab needs you. The rest is informational.</div>`;
+  return `<div class="info-bar">Informational — the assistant is handling these. Nothing for you to do here.</div>`;
 }
 function renderOppsPage(){
   const root=document.getElementById("oppsRoot");
@@ -1262,31 +1155,38 @@ function renderOppsPage(){
     const rehashAll=roster.map(r=>({
       ref:r.ref,name:r.name,phone:(estimates.find(e=>e.name===r.name)||{}).phone||"—",
       job:r.est,stage:r.stage,src:"Rehash SMS",value:r.val,wait:r.wait,rehash:true}));
-    const srcTabs=[["all","All",captured.length+rehashAll.length],["lead","Captured Leads",captured.length],["rehash","Rehashed Leads",rehashAll.length]];
-    const SR_SUB=[["all","All"],["needs_info","Needs Info"],["ready","Ready to Schedule"],["scheduled","Scheduled"],["completed","Completed"],["canceled","Canceled"]];
-    const stageIs=(o,k)=>k==="cadence"?(o.stage==="cadence"||o.stage==="queued"):o.stage===k;
-    let rows,subHtml="";
+    const attnRows=captured.filter(s=>SR_ATTN(s.status)).concat(rehashAll.filter(o=>o.stage==="hot"||o.stage==="interested"));
+    const srcTabs=[["attention","Needs attention",attnRows.length],["lead","Captured Leads",captured.length],["rehash","Rehashed Leads",rehashAll.length]];
+    const SR_SUB=[["attention","Needs attention"],["scheduled","Scheduled"],["completed","Completed"],["canceled","Canceled"]];
+    const stageIs=(o,k)=>k==="attention"?(o.stage==="hot"||o.stage==="interested"):k==="cadence"?(o.stage==="cadence"||o.stage==="queued"):o.stage===k;
+    let rows,subHtml="",banner="";
     if(oppTab==="lead"){
-      rows=captured.filter(s=>oppStatusTab==="all"||s.status===oppStatusTab);
+      rows=captured.filter(s=>srMatch(s.status,oppStatusTab));
       subHtml=SR_SUB.map(([k,l])=>{
-        const n=captured.filter(s=>k==="all"||s.status===k).length;
-        return `<button class="btn btn-sm ${oppStatusTab===k?"btn-primary":"btn-outline"}" onclick="oppStatusTab='${k}';renderOppsPage()">${l} · ${n}</button>`}).join("");
+        const n=captured.filter(s=>srMatch(s.status,k)).length;
+        const attn=k==="attention", cls=oppStatusTab===k?(attn?"btn-attn":"btn-primary"):"btn-outline";
+        return `<button class="btn btn-sm ${cls}" onclick="oppStatusTab='${k}';renderOppsPage()">${l} · ${n}</button>`}).join("");
+      banner=leadAttnBanner("captured",oppStatusTab);
     }else if(oppTab==="rehash"){
       rows=rehashAll.filter(o=>stageIs(o,oppStatusTab));
       subHtml=RL_TABS.map(([k,l])=>{
         const n=rehashAll.filter(o=>stageIs(o,k)).length;
-        return `<button class="btn btn-sm ${oppStatusTab===k?"btn-primary":"btn-outline"}" onclick="oppStatusTab='${k}';renderOppsPage()">${l} · ${n}</button>`}).join("");
+        const attn=k==="attention", cls=oppStatusTab===k?(attn?"btn-attn":"btn-primary"):"btn-outline";
+        return `<button class="btn btn-sm ${cls}" onclick="oppStatusTab='${k}';renderOppsPage()">${l} · ${n}</button>`}).join("");
+      banner=leadAttnBanner("rehash",oppStatusTab);
     }else{
-      rows=captured.concat(rehashAll);
+      rows=attnRows;
+      banner=`<div class="attn-bar"><b>These need you.</b> Rehashed leads to call — Hot Leads to close, Interested ones to answer — plus captured leads that need a booking or more info. Everything else is the assistant still working; see the other two tabs.</div>`;
     }
     const statusCell=o=>{
       if(!o.rehash)return `<span class="badge ${SRSTATUS[o.status][1]}">${SRSTATUS[o.status][0]}</span>`;
       const st=STAGES[o.stage];
-      return `<span class="badge ${st.badge}">${o.stage==="warm"||o.stage==="talking"?'<span class="dot"></span>':""}${st.label}</span>`};
+      return `<span class="badge ${st.badge}">${o.stage==="hot"||o.stage==="interested"?'<span class="dot"></span>':""}${st.label}</span>`};
     root.innerHTML=`
-     <div class="page-h"><div><h1>Opportunities</h1><p>Every chance to win a job, from every agent — captured leads and rehashed estimates in one queue.</p></div></div>
-     <nav class="utabs" role="tablist">${srcTabs.map(([k,l,n])=>`<button class="utab ${oppTab===k?"active":""}" role="tab" onclick="setOppSource('${k}')">${l}<span class="cnt">${n}</span></button>`).join("")}</nav>
+     <div class="page-h"><div><h1>Opportunities</h1><p>Every chance to win a job, from every agent. <b>Needs attention</b> is what to work now — the rest is the assistant running.</p></div></div>
+     <nav class="utabs" role="tablist">${srcTabs.map(([k,l,n])=>`<button class="utab ${k==="attention"?"attn ":""}${oppTab===k?"active":""}" role="tab" onclick="setOppSource('${k}')">${l}<span class="cnt">${n}</span></button>`).join("")}</nav>
      ${subHtml?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin:14px 0 0">${subHtml}</div>`:""}
+     ${banner}
      <div class="toolbar">
        <div class="searchbox"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
          <input placeholder="Search opportunities..." aria-label="Search" oninput="toast('Search is decorative in this prototype')"></div>
@@ -1308,12 +1208,14 @@ function renderOppsPage(){
         </tr>`).join("")||'<tr><td colspan="8"><div class="empty">Nobody here right now.</div></td></tr>'}</tbody></table></div>
      <div class="pagefoot">Showing ${rows.length} of ${captured.length+rehashAll.length} · every agent — today's and future ones — feeds this same queue.</div>`;
   }else{
-    const counts=s=>srRows.filter(x=>x.status===s).length;
-    const tabs=[["all","All",srRows.length],["needs_info","Needs Info",counts("needs_info")],["ready","Ready to Schedule",counts("ready")],["scheduled","Scheduled",counts("scheduled")],["completed","Completed",counts("completed")],["canceled","Canceled",counts("canceled")]];
-    const rows=srRows.filter(s=>oppStatusTab==="all"||s.status===oppStatusTab);
+    if(!["attention","scheduled","completed","canceled"].includes(oppStatusTab))oppStatusTab="attention";
+    const tabs=[["attention","Needs attention"],["scheduled","Scheduled"],["completed","Completed"],["canceled","Canceled"]];
+    const rows=srRows.filter(s=>srMatch(s.status,oppStatusTab));
+    const banner=leadAttnBanner("captured",oppStatusTab);
     root.innerHTML=`
-     <div class="page-h"><div><h1>Service Requests</h1><p>Manage incoming job requests from your customers</p></div></div>
-     <nav class="utabs" role="tablist">${tabs.map(([k,l,n])=>`<button class="utab ${oppStatusTab===k?"active":""}" role="tab" onclick="oppStatusTab='${k}';renderOppsPage()">${l}<span class="cnt">${n}</span></button>`).join("")}</nav>
+     <div class="page-h"><div><h1>Service Requests</h1><p>Incoming job requests. Only <b>Needs attention</b> needs you — the rest is informational.</p></div></div>
+     <nav class="utabs" role="tablist">${tabs.map(([k,l])=>{const n=srRows.filter(s=>srMatch(s.status,k)).length;const attn=k==="attention";return `<button class="utab ${attn?"attn ":""}${oppStatusTab===k?"active":""}" role="tab" onclick="oppStatusTab='${k}';renderOppsPage()">${l}<span class="cnt">${n}</span></button>`}).join("")}</nav>
+     ${banner}
      ${searchbar}
      <div class="tablewrap"><table>
       <thead><tr><th style="width:86px">Ref</th><th style="width:150px">Contact</th><th style="width:130px">Phone</th><th>Job Type</th><th style="width:160px">Status</th><th style="width:140px">Channel</th><th style="width:130px">Lead Source</th><th style="width:130px">Created</th></tr></thead>
@@ -1333,53 +1235,21 @@ function renderOppsPage(){
 }
 
 /* ================= Page: Rehashed Leads (B) ================= */
-const RL_TABS=[["warm","Warm leads"],["talking","Talking to assistant"],["cadence","In cadence"],["sold","Sold"],["stopped","Stopped"]];
-function rlStageMatch(r,tab){return tab==="cadence"?(r.stage==="cadence"||r.stage==="queued"):r.stage===tab}
-const C_RL_TABS=[["warm","Needs your call"],["talking","In conversation"],["cadence","Following up"],["sold","Won"],["stopped","Closed / stopped"]];
+const RL_TABS=[["attention","Needs attention"],["cadence","In queue"],["declined","Declined"],["sold","Sold"],["stopped","Stopped"]];
+/* "Needs attention" = Hot Lead + Interested (need a human). "In queue" = assistant still texting. */
+function rlStageMatch(r,tab){if(tab==="attention")return r.stage==="hot"||r.stage==="interested";if(tab==="cadence")return r.stage==="cadence"||r.stage==="queued";return r.stage===tab}
 function renderRLPage(){
   const root=document.getElementById("rlRoot");
-  const three=iaOption==="three";
-  const TABS=three?C_RL_TABS:RL_TABS;
-  const counts=Object.fromEntries(TABS.map(([k])=>[k,roster.filter(r=>rlStageMatch(r,k)&&(rlCampFilter==="all"||r.campId===rlCampFilter)).length]));
-  if(three){
-    const campChips=[`<button class="btn btn-sm ${rlCampFilter==="all"?"btn-primary":"btn-outline"}" onclick="rlCampFilter='all';renderRLPage()">All campaigns</button>`]
-     .concat(campaigns.filter(c=>roster.some(r=>r.campId===c.id)).map(c=>
-      `<button class="btn btn-sm ${rlCampFilter===c.id?"btn-primary":"btn-outline"}" onclick="rlCampFilter=${c.id};renderRLPage()">${c.name}</button>`)).join("");
-    const rows=roster.filter(r=>rlStageMatch(r,rlTab)&&(rlCampFilter==="all"||r.campId===rlCampFilter));
-    const openN=roster.filter(r=>["warm","talking","cadence","queued"].includes(r.stage)&&(rlCampFilter==="all"||r.campId===rlCampFilter)).length;
-    const banner=rlTab==="warm"
-      ?(counts.warm?`<div class="bucket act warm" style="margin:14px 0 0"><span class="ico">🔥</span><span class="bn">${counts.warm}</span><div class="bmid"><div class="bt">Call these to close</div><div class="bd">The assistant warmed them up — this is the only list that needs you. Get it to zero.</div></div></div>`
-        :`<div class="bucket warm" style="margin:14px 0 0;border-color:var(--green-bd);background:var(--green-bg)"><span class="ico">🎉</span><div class="bmid"><div class="bt">Nothing needs your call right now</div><div class="bd">The assistant's on top of everyone else.</div></div></div>`)
-      :"";
-    root.innerHTML=`
-     <div class="page-h"><div><h1>Rehashed Leads</h1><p>${openN} open estimates the assistant is working. The only tab that needs you is the first — get it to zero.</p></div></div>
-     <nav class="utabs" role="tablist">${TABS.map(([k,l])=>`<button class="utab ${rlTab===k?"active":""}" role="tab" onclick="rlTab='${k}';renderRLPage()">${l}<span class="cnt">${counts[k]}</span></button>`).join("")}</nav>
-     ${banner}
-     <div class="toolbar">
-       <div class="searchbox"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-         <input placeholder="Search rehashed leads..." aria-label="Search" oninput="toast('Search is decorative in this prototype')"></div>
-       <div style="display:flex;gap:6px;flex-wrap:wrap">${campChips}</div>
-     </div>
-     <div class="tablewrap"><table>
-      <thead><tr><th style="width:86px">Ref</th><th style="width:150px">Contact</th><th style="width:130px">Phone</th><th>Estimate</th><th style="width:90px">Value</th><th style="width:170px">Campaign</th><th>What's next</th></tr></thead>
-      <tbody>${rows.map(r=>{
-        const camp=campaigns.find(c=>c.id===r.campId);
-        return `<tr class="rowbtn" onclick="openLeadDrawer('${r.name.replace(/'/g,"\\'")}')">
-          <td class="t-num t-muted">${r.ref}</td><td class="t-name">${r.name}</td>
-          <td class="t-num t-muted">${(estimates.find(e=>e.name===r.name)||{}).phone||"—"}</td>
-          <td class="t-muted">${r.est}</td><td class="t-num">${r.val}</td>
-          <td class="t-muted">${camp?camp.name:"—"}</td><td class="t-muted">${r.next}</td>
-        </tr>`}).join("")||'<tr><td colspan="7"><div class="empty">Nobody in this stage right now.</div></td></tr>'}</tbody></table></div>
-     <div class="pagefoot">Showing ${rows.length} · click a lead for details and the thread. Threads with replies also appear in Conversations.</div>`;
-    return;
-  }
+  const counts=Object.fromEntries(RL_TABS.map(([k])=>[k,roster.filter(r=>rlStageMatch(r,k)&&(rlCampFilter==="all"||r.campId===rlCampFilter)).length]));
   const campChips=[`<button class="btn btn-sm ${rlCampFilter==="all"?"btn-primary":"btn-outline"}" onclick="rlCampFilter='all';renderRLPage()">All campaigns</button>`]
    .concat(campaigns.filter(c=>roster.some(r=>r.campId===c.id)).map(c=>
     `<button class="btn btn-sm ${rlCampFilter===c.id?"btn-primary":"btn-outline"}" onclick="rlCampFilter=${c.id};renderRLPage()">${c.name}</button>`)).join("");
   const rows=roster.filter(r=>rlStageMatch(r,rlTab)&&(rlCampFilter==="all"||r.campId===rlCampFilter));
+  const banner=leadAttnBanner("rehash",rlTab);
   root.innerHTML=`
-   <div class="page-h"><div><h1>Rehashed Leads</h1><p>Every estimate your rehash assistant is working. Warm leads need a call — the rest is the machine running.</p></div></div>
-   <nav class="utabs" role="tablist">${RL_TABS.map(([k,l])=>`<button class="utab ${rlTab===k?"active":""}" role="tab" onclick="rlTab='${k}';renderRLPage()">${l}<span class="cnt">${counts[k]}</span></button>`).join("")}</nav>
+   <div class="page-h"><div><h1>Rehashed Leads</h1><p>Only <b>Needs attention</b> needs you. Everything else is the assistant working — shown for visibility.</p></div></div>
+   <nav class="utabs" role="tablist">${RL_TABS.map(([k,l])=>`<button class="utab ${k==="attention"?"attn ":""}${rlTab===k?"active":""}" role="tab" onclick="rlTab='${k}';renderRLPage()">${l}<span class="cnt">${counts[k]}</span></button>`).join("")}</nav>
+   ${banner}
    <div class="toolbar">
      <div class="searchbox"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
        <input placeholder="Search rehashed leads..." aria-label="Search" oninput="toast('Search is decorative in this prototype')"></div>
@@ -1409,7 +1279,7 @@ function convRowsData(){
   const rehash=roster.filter(r=>r.stage!=="queued").map(r=>{
     const e=estimates.find(x=>x.name===r.name);
     return {ref:r.ref,name:r.name,channel:"SMS",intent:"rehash",campId:r.campId,
-      outcome:r.stage==="talking"?"in_progress":(r.stage==="warm"||r.stage==="sold")?"completed":(r.replied?"stopped":"no_answer"),
+      outcome:(r.stage==="hot"||r.stage==="sold")?"completed":r.stage==="interested"?"in_progress":((r.stage==="cadence"||r.stage==="queued")&&r.replied)?"in_progress":((r.stage==="cadence"||r.stage==="queued")?"no_answer":"stopped"),
       created:e?Math.max(1,e.age-3)+"d ago":"—",
       last:r.wait!=="—"?r.wait+" ago":"—",
       rehash:true};
@@ -1479,7 +1349,7 @@ function renderConvPage(){
 }
 
 /* ================= Drawer plumbing ================= */
-const DRAWERS=["convDrawer","segDrawer","campDrawer","wizDrawer"];
+const DRAWERS=["convDrawer","campDrawer","wizDrawer"];
 function openDrawerEl(id){
   DRAWERS.forEach(d=>document.getElementById(d).classList.toggle("open",d===id));
   document.getElementById("overlay").classList.add("open");
@@ -1490,7 +1360,7 @@ function closeAllDrawers(){
 }
 
 /* ================= Wizard ================= */
-let wstep=1,editingCampId=null,selSegIds=new Set(),wizTopics=defaultTopics(),wizTone="professional";
+let wstep=1,editingCampId=null,wizTopics=defaultTopics(),wizTone="professional";
 function renderTopics(){
   document.getElementById("topicList").innerHTML=TOPICS.map(t=>`
    <div class="topic">
@@ -1501,104 +1371,96 @@ function renderTopics(){
 function renderTone(){
   document.getElementById("toneSeg").innerHTML=TONES.map(([k,l])=>`<button class="${wizTone===k?"on":""}" onclick="wizTone='${k}';renderTone()">${l}</button>`).join("");
 }
-const wNextLabels=["Next: assistant behavior","Next: stopping rules","Launch campaign"];
+const wNextLabels=["Next: follow-up rhythm","Next: assistant behavior","Launch campaign"];
 function openWizard(campId){
   editingCampId=campId;wstep=1;
   const c=campId?campaigns.find(x=>x.id===campId):null;
-  selSegIds=new Set(c?c.segIds:(()=>{const free=segments.find(s=>!segUsedBy(s.id).length);return [free?free.id:segments[0].id]})());
+  tempSeg=c?JSON.parse(JSON.stringify(c.filters))
+          :{mode:"all",include:[R("status","is","Open"),R("created","more than","7")],exclude:[R("tag","is","no-AI")]};
   document.getElementById("campName").value=c?c.name:"";
   wizTopics=c&&c.topics?{...c.topics}:defaultTopics();
   wizTone=c?c.tone:"professional";
   document.getElementById("guidance").value=c?c.guidance||"":"";
-  renderTopics();renderTone();
-  const re=c?(c.reentry==="Never"?"never":c.reentry==="Always"?"always":"90"):"90";
-  document.querySelectorAll('input[name=re]').forEach(r=>{r.checked=(r.value===re);r.closest(".radio-card").classList.toggle("sel",r.checked)});
+  renderTopics();renderTone();renderRuleUI();
   document.querySelectorAll('input[name=cad]').forEach(r=>{r.checked=(r.value==="standard");r.closest(".radio-card").classList.toggle("sel",r.checked)});
   document.getElementById("customRhythm").style.display="none";
   document.getElementById("optionPref").value=c?c.optionPref||"first":"first";
   document.getElementById("wkndSwitch").classList.toggle("on",c?c.weekends!==false:true);
-  renderWizSegs();syncWiz();
+  syncWiz();
   openDrawerEl("wizDrawer");
 }
-function updateCadPreview(){
-  const el=document.getElementById("cadPreview");if(!el)return;
+/* Relative cadence: text 1 on day 1, text 2 the next day, then every other day. */
+function cadenceCount(){
   const v=(document.querySelector('input[name=cad]:checked')||{}).value||"standard";
-  let n,d;
-  if(v==="standard"){n=5;d=14}else if(v==="gentle"){n=3;d=14}
-  else{n=+document.getElementById("cTouches").value;d=+document.getElementById("cDays").value}
+  return v==="standard"?5:v==="gentle"?3:+document.getElementById("cTouches").value;
+}
+function cadenceOffsets(n){return Array.from({length:n},(_,k)=>k===0?1:2*k)}
+function renderCadence(){
+  const el=document.getElementById("cadViz");if(!el)return;
+  const n=cadenceCount(), days=cadenceOffsets(n), maxD=days[days.length-1];
   const wknd=document.getElementById("wkndSwitch").classList.contains("on");
-  const dn=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],out=[],base=new Date();
-  for(let i=0;i<n;i++){
-    let off=n===1?1:Math.max(1,Math.round(1+i*(d-1)/(n-1)));
-    let dt=new Date(base);dt.setDate(base.getDate()+off);
-    if(!wknd){while(dt.getDay()===0||dt.getDay()===6)dt.setDate(dt.getDate()+1)}
-    out.push(dn[dt.getDay()]+" "+(dt.getMonth()+1)+"/"+dt.getDate());
-  }
-  el.innerHTML=`📅 First texts go out at 9 AM on: <b>${out.join(" · ")}</b>${wknd?"":" · weekends skipped"}`;
-}
-function renderWizSegs(){
-  document.getElementById("wSegList").innerHTML=segments.map(s=>{
-    const n=matchRows(s.filters).length,sel=selSegIds.has(s.id),used=segUsedBy(s.id).filter(u=>!editingCampId||u!==campaigns.find(c=>c.id===editingCampId).name);
-    const exc=matchIncOnly(s.filters).length-n;
-    return `<label class="radio-card ${sel?"sel":""}"><input type="checkbox" ${sel?"checked":""} onchange="toggleSeg(${s.id},this)"><span><b>${s.name} — ${n} match now</b><span>${summarize(s.filters)}${exc>0?` · ${exc} excluded`:""}${used.length?` · also used by "${used.join('", "')}"`:""}</span></span></label>`;
+  const markers=days.map((d,i)=>{
+    const pct=maxD===1?0:((d-1)/(maxD-1))*100;
+    const gap=i===0?"":(days[i]-days[i-1]);
+    return `<div style="position:absolute;left:${pct}%;top:0;transform:translateX(-50%);text-align:center">
+      <div style="font-size:10px;font-weight:600;color:var(--brand-active);white-space:nowrap;margin-bottom:6px">Text ${i+1}</div>
+      <div style="width:13px;height:13px;border-radius:99px;background:var(--brand);margin:0 auto;box-shadow:0 0 0 3px var(--brand-tint)"></div>
+      <div style="font-size:11px;font-weight:600;margin-top:7px;white-space:nowrap">Day ${d}</div>
+      ${gap?`<div style="font-size:10px;color:var(--text-3);white-space:nowrap">+${gap}d</div>`:`<div style="font-size:10px;color:var(--text-3)">start</div>`}
+    </div>`;
   }).join("");
+  el.innerHTML=`
+    <div style="border:1px solid var(--border);border-radius:12px;background:var(--muted-30);padding:16px 26px 12px">
+      <div style="position:relative;height:72px">
+        <div style="position:absolute;left:0;right:0;top:22px;height:2px;background:var(--border-2)"></div>
+        ${markers}
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-3);border-top:1px dashed var(--border);padding-top:8px;margin-top:2px">
+        <span>⏱ Relative to each estimate's entry day</span>
+        <span><b>${n}</b> texts across <b>${maxD}</b> days${wknd?"":" · weekends skipped"}</span>
+      </div>
+    </div>`;
 }
-function toggleSeg(id,el){
-  el.checked?selSegIds.add(id):selSegIds.delete(id);
-  el.closest(".radio-card").classList.toggle("sel",el.checked);
-}
-function wizToNewSegment(){
-  showPage("rehash");showTab("segments");openSegDrawer(null);
-  toast("Save the segment, then reopen the campaign — it will be in the list");
-}
-function unionCount(){
-  const set=new Set();
-  selSegIds.forEach(id=>{const s=segments.find(x=>x.id===id);if(s)matchRows(s.filters).forEach(e=>set.add(e.name))});
-  return set.size;
-}
+function unionCount(){return matchRows(tempSeg).length}
 function rhythmLabel(){
-  const v=document.querySelector('input[name=cad]:checked').value;
-  return v==="standard"?"5 texts over 14 days":v==="gentle"?"3 texts over 14 days":`${document.getElementById("cTouches").value} texts over ${document.getElementById("cDays").value} days`;
+  const n=cadenceCount(), d=cadenceOffsets(n);
+  return `${n} texts over ${d[d.length-1]} days`;
 }
 function syncWiz(){
   [1,2,3].forEach(i=>{
     document.getElementById("wstep"+i).hidden=(i!==wstep);
     document.getElementById("sd"+i).classList.toggle("on",i<=wstep);
   });
-  if(wstep===2)updateCadPreview();
-  /* Spencer/Cowboy feedback: re-entry doesn't fit HCP — drop it in the research-applied option */
-  document.getElementById("reentryField").style.display=(iaOption==="three")?"none":"block";
-  if(wstep===3){
+  if(wstep===2){
+    renderCadence();
     document.getElementById("backlogBox").style.display=editingCampId?"none":"block";
     if(!editingCampId){
       document.getElementById("backlogN").textContent=unionCount();
-      const names=[...selSegIds].map(id=>segments.find(s=>s.id===id)?.name).filter(Boolean);
-      document.getElementById("backlogSeg").textContent=names.length===1?`"${names[0]}"`:`these ${names.length} segments`;
+      const nm=document.getElementById("campName").value.trim();
+      document.getElementById("backlogSeg").textContent=nm?`"${nm}"`:"this audience";
     }
   }
   document.getElementById("wBack").textContent=wstep===1?"Cancel":"Back";
   document.getElementById("wNext").textContent=wstep===3?(editingCampId?"Save changes":"Launch campaign"):wNextLabels[wstep-1];
   document.getElementById("wKicker").textContent=editingCampId?"EDIT CAMPAIGN":"NEW CAMPAIGN";
-  document.getElementById("wTitle").textContent=["Audience","Assistant behavior",editingCampId?"Stopping rules":"Stopping rules & launch"][wstep-1];
+  document.getElementById("wTitle").textContent=["Audience","Follow-up rhythm","Assistant behavior"][wstep-1];
 }
 function wizNext(){
-  if(wstep===1&&!selSegIds.size){toast("Pick at least one segment first");return}
+  if(wstep===1&&!matchRows(tempSeg).length){toast("No estimates match this audience yet — loosen a rule");return}
   if(wstep<3){wstep++;syncWiz();return}
   const name=document.getElementById("campName").value.trim()||"Untitled campaign";
-  const reVal=document.querySelector('input[name=re]:checked').value;
-  const reentry=reVal==="never"?"Never":reVal==="always"?"Always":"Only after 90 days";
-  const data={name,segIds:[...selSegIds],rhythm:rhythmLabel(),
-    topics:{...wizTopics},tone:wizTone,guidance:document.getElementById("guidance").value.trim(),reentry,
+  const data={name,filters:JSON.parse(JSON.stringify(tempSeg)),rhythm:rhythmLabel(),
+    topics:{...wizTopics},tone:wizTone,guidance:document.getElementById("guidance").value.trim(),
     optionPref:document.getElementById("optionPref").value,weekends:document.getElementById("wkndSwitch").classList.contains("on")};
   if(editingCampId){
     Object.assign(campaigns.find(c=>c.id===editingCampId),data);
-    closeAllDrawers();refreshAll();showPage("rehash");showTab("campaigns");
+    closeAllDrawers();refreshAll();showPage("rehash");
     toast(`${name} updated — changes apply from the next send`);
   }else{
     const backlog=document.getElementById("backlogSwitch").classList.contains("on");
     const n=unionCount();
     campaigns.unshift({id:nextCampId++,...data,status:"active",stats:{cad:backlog?n:0,rep:0,hand:0}});
-    closeAllDrawers();refreshAll();showPage("rehash");showTab("campaigns");
+    closeAllDrawers();refreshAll();showPage("rehash");
     toast(backlog?`${name} is live — ${n} backlog estimates spread over the next 3 days, first texts tomorrow 9 AM`
                  :`${name} is live — it will pick up new estimates as they match`);
   }
@@ -1625,20 +1487,15 @@ function showPage(p){
   if(p==="opps")renderOppsPage();
   if(p==="rl")renderRLPage();
   if(p==="conv")renderConvPage();
-  if(p==="rehash")renderOverview();
+  if(p==="rehash")renderRehashPage();
   closeAllDrawers();
 }
 function setIA(opt){
-  iaOption=opt;oppTab="all";oppStatusTab="all";rlTab="warm";
+  iaOption=opt;oppTab="attention";oppStatusTab="attention";rlTab="attention";
   document.getElementById("iaBtnOne").className="btn btn-sm "+(opt==="one"?"btn-primary":"btn-outline");
   document.getElementById("iaBtnTwo").className="btn btn-sm "+(opt==="two"?"btn-primary":"btn-outline");
-  document.getElementById("iaBtnThree").className="btn btn-sm "+(opt==="three"?"btn-primary":"btn-outline");
   document.getElementById("navSRLabel").textContent=opt==="one"?"Opportunities":"Service Requests";
-  document.getElementById("navRL").hidden=(opt==="one"); /* shown in B and C */
-  /* Option C merges Segments into Campaigns — hide the standalone Segments tab */
-  const segTab=document.querySelector('.tab[data-tab="segments"]');
-  segTab.hidden=(opt==="three");
-  if(opt==="three"&&curTab==="segments")showTab("campaigns");
+  document.getElementById("navRL").hidden=(opt==="one"); /* shown in B only */
   convTab="all";convCampFilter="all";
   if(opt==="one"&&curPage==="rl")curPage="opps";
   showPage(curPage);
@@ -1655,11 +1512,11 @@ function toast(msg){
 document.addEventListener("change",e=>{
   if(e.target.matches('.radio-card input[type=radio]')){
     document.querySelectorAll(`input[name=${e.target.name}]`).forEach(r=>r.closest(".radio-card").classList.toggle("sel",r.checked));
-    if(e.target.name==="cad"){document.getElementById("customRhythm").style.display=(e.target.value==="custom"&&e.target.checked)?"flex":"none";updateCadPreview()}
+    if(e.target.name==="cad"){document.getElementById("customRhythm").style.display=(e.target.value==="custom"&&e.target.checked)?"flex":"none";renderCadence()}
   }
 });
 document.addEventListener("click",()=>{const p=document.getElementById("convPop");if(p)p.classList.remove("open")});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeAllDrawers();closePauseModal();closeExc()}});
 
-renderSegList();renderCampaigns();setIA("three");
+renderCampaigns();setIA("one");
 </script>
