@@ -143,6 +143,7 @@
   tbody tr.rowbtn{cursor:pointer}
   tbody tr.rowbtn:hover{background:var(--muted-30)}
   .t-num{font-variant-numeric:tabular-nums}
+  .sum-cell{font-size:12.5px;color:var(--text-2);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .t-name{font-weight:500}
   .t-muted{color:var(--text-3);font-size:12px}
   .empty{padding:30px;text-align:center;color:var(--text-3);font-size:13px}
@@ -232,6 +233,8 @@
   .radio-card input{margin-top:3px;accent-color:var(--brand)}
   .radio-card.sel{border-color:var(--brand);background:var(--brand-tint)}
   .radio-card b{display:block;font-size:13px}
+  .reco-pill{background:var(--brand-tint);color:var(--brand-active);border:1px solid #BAE0FF;border-radius:99px;padding:0 7px;font-size:10px;font-weight:600;margin-left:6px;vertical-align:middle;letter-spacing:.02em}
+  .customrhythm select{font-weight:600;width:auto;min-width:64px}
   .radio-card span{color:var(--text-2);font-size:12px}
   .customrhythm{display:flex;gap:8px;align-items:center;margin-top:8px;font-size:12.5px;flex-wrap:wrap}
   .customrhythm select{border:1px solid var(--border-2);border-radius:7px;padding:4px 7px;font-size:12.5px;background:#fff}
@@ -245,8 +248,6 @@
   .topic:first-child{border-top:none}
   .topic .topic-t{font-size:13px;font-weight:500}
   .topic .topic-d{font-size:11.5px;color:var(--text-3);margin-top:1px}
-  .backlog-callout{border:1px solid var(--amber-bd);background:var(--amber-bg);border-radius:10px;padding:13px 15px;font-size:13px;color:var(--amber-fg)}
-  .backlog-callout b{display:block;margin-bottom:3px}
   .reset-link{font-size:11.5px;color:var(--brand);font-weight:500;margin-left:auto;cursor:pointer}
   .reset-link:hover{text-decoration:underline}
 
@@ -266,6 +267,7 @@
     <span style="font-weight:600;color:#33404f">Compare IA:</span>
     <button class="btn btn-sm btn-primary" id="iaBtnOne" onclick="setIA('one')">A · One queue</button>
     <button class="btn btn-sm btn-outline" id="iaBtnTwo" onclick="setIA('two')">B · Two tabs</button>
+    <button class="btn btn-sm btn-outline" id="iaBtnThree" onclick="setIA('three')">C · Sectioned nav</button>
   </span>
 </div>
 
@@ -276,24 +278,7 @@
       <div class="brand-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
       <div><div class="brand-name">Breezy</div><div class="brand-sub">AI for the trades</div></div>
     </div>
-    <nav class="nav">
-      <div class="nav-group">General</div>
-      <button class="nav-item"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>Dashboard</button>
-      <button class="nav-item" id="navSR" onclick="showPage('opps')"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6M9 16h6"/></svg><span id="navSRLabel">Opportunities</span></button>
-      <button class="nav-item" id="navRL" onclick="showPage('rl')" hidden><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg>Rehashed Leads</button>
-      <button class="nav-item" id="navConv" onclick="showPage('conv')"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Conversations</button>
-      <button class="nav-item"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Contacts</button>
-      <div class="nav-group">Agents &amp; Tools</div>
-      <button class="nav-item"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>Voice Agent</button>
-      <button class="nav-item"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M2 14h2M20 14h2M15 13v2M9 13v2"/></svg>Website Chatbot</button>
-      <button class="nav-item"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/></svg>Booking Form</button>
-      <button class="nav-item active" id="navRehash" onclick="showPage('rehash')" aria-current="page"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15.36-6.36L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15.36 6.36L3 16"/><path d="M3 21v-5h5"/></svg>Estimate Rehashing<span class="nav-new">NEW</span></button>
-      <div class="nav-group">Company</div>
-      <button class="nav-item"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v2m0 16v2m10-10h-2M4 12H2m17.07-7.07-1.41 1.41M6.34 17.66l-1.41 1.41m14.14 0-1.41-1.41M6.34 6.34 4.93 4.93"/></svg>Settings</button>
-      <button class="nav-item"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Team</button>
-      <button class="nav-item"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>Job Types</button>
-      <button class="nav-item"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22v-5"/><path d="M9 8V2h6v6"/><path d="M5 8h14a1 1 0 0 1 1 1v3a5 5 0 0 1-5 5h-6a5 5 0 0 1-5-5V9a1 1 0 0 1 1-1z"/></svg>Integrations</button>
-    </nav>
+    <nav class="nav" id="navRoot"></nav>
     <div class="nav-footer">
       <button class="nav-item"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Logout</button>
     </div>
@@ -433,56 +418,30 @@
       </div>
       <div id="wstep2" hidden>
         <div class="field">
-          <label>How many texts?</label>
-          <label class="radio-card sel"><input type="radio" name="cad" value="standard" checked><span><b>Standard — 5 texts (recommended)</b><span>Short, question-first messages. Stops the moment they reply.</span></span></label>
-          <label class="radio-card"><input type="radio" name="cad" value="gentle"><span><b>Gentle — 3 texts</b><span>For customers you don't want to nudge as often.</span></span></label>
-          <label class="radio-card"><input type="radio" name="cad" value="custom"><span><b>Custom — you choose</b><span>Pick how many texts.</span>
+          <label>The opening push <span class="t-muted" style="font-weight:400">— how many texts, over how many days</span></label>
+          <div class="hint" style="margin-top:0;margin-bottom:9px">The first stretch does the heavy lifting. It front-loads — a couple of quick touches, then spaces out across the window.</div>
+          <label class="radio-card sel"><input type="radio" name="cad" value="standard" checked><span><b>Standard — 5 texts over 8 days <span class="reco-pill">Recommended</span></b><span>Two quick touches, then every other day. Best reply rates.</span></span></label>
+          <label class="radio-card"><input type="radio" name="cad" value="gentle"><span><b>Gentle — 3 texts over 7 days</b><span>A lighter touch for customers you don't want to nudge hard.</span></span></label>
+          <label class="radio-card"><input type="radio" name="cad" value="custom"><span><b>Custom — set your own pace</b><span>Choose the number of texts and the window they go out over.</span>
             <span class="customrhythm" id="customRhythm" style="display:none">
-              <select id="cTouches" onchange="renderCadence()"><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option><option>7</option></select> texts
+              <select id="cTouches" onchange="renderCadence()"><option>2</option><option>3</option><option>4</option><option selected>5</option><option>6</option><option>7</option></select> texts over
+              <select id="cDays" onchange="renderCadence()"><option>7</option><option selected>10</option><option>14</option><option>21</option><option>30</option></select> days
             </span></span></label>
           <div class="switchrow" style="padding:8px 0 0"><button class="switch on" id="wkndSwitch" onclick="this.classList.toggle('on');renderCadence()" role="switch" aria-checked="true" aria-label="Send on weekends"></button>Send on weekends</div>
         </div>
         <div class="field">
+          <label>Then keep following up on a longer rhythm</label>
+          <div class="hint" style="margin-top:0;margin-bottom:9px">After the first push, the assistant spaces out instead of stopping — and only ever stops when they reply or say "stop."</div>
+          <div class="switchrow" style="padding:4px 0"><button class="switch on" id="weeklySwitch" onclick="this.classList.toggle('on');renderCadence()" role="switch" aria-checked="true" aria-label="Weekly follow-up for 4 weeks"></button>Every week, for 4 weeks</div>
+          <div class="switchrow" style="padding:4px 0"><button class="switch on" id="monthlySwitch" onclick="this.classList.toggle('on');renderCadence()" role="switch" aria-checked="true" aria-label="Monthly follow-up for 3 months"></button>Then every month, for 3 months</div>
+        </div>
+        <div class="field">
           <label>When each estimate gets its texts</label>
           <div id="cadViz"></div>
-          <div class="hint" style="margin-top:8px">Days are counted from when <b>each</b> estimate enters the campaign — not calendar dates — because new estimates keep joining. The first two texts are a day apart, then every other day.</div>
+          <div class="hint" style="margin-top:8px">Days are counted from when <b>each</b> estimate enters the campaign — not calendar dates — because new estimates keep joining. The first push front-loads (a couple of quick touches, then spreads across the window you set); the weekly and monthly phases keep the lead warm over the long tail.</div>
         </div>
-        <div class="backlog-callout" id="backlogBox">
-          <b>Include the <span id="backlogN">7</span> estimates already in <span id="backlogSeg">this audience</span>?</b>
-          These were sent before today. We'll spread their first texts over the next 3 days (business hours only) instead of blasting them at once.
-          <div class="switchrow" style="padding-bottom:0"><button class="switch on" id="backlogSwitch" onclick="this.classList.toggle('on')" role="switch" aria-checked="true" aria-label="Include existing estimates"></button>Yes, work the backlog <span class="t-muted">— this is usually where the money is</span></div>
-        </div>
-      </div>
-      <div id="wstep3" hidden>
-        <div class="field">
-          <label>Topics the assistant can bring up</label>
-          <div class="topic" style="border-top:none;background:var(--muted-30);border:1px solid var(--border);border-radius:10px;padding:11px 13px;margin-bottom:8px">
-            <span class="ico" style="font-size:16px">📌</span>
-            <div><div class="topic-t">Always explains why this estimate matters</div><div class="topic-d">Pulled from the job's summary of work — the #1 thing that earns a reply. Always on.</div></div>
-          </div>
-          <div id="topicList"></div>
-          <div class="hint" style="margin-top:8px">The assistant writes each text itself and always answers questions from the estimate. These are the extra topics it's allowed to raise when they fit the conversation — turn on only what suits your business.</div>
-        </div>
-        <div class="field">
-          <label>Tone</label>
-          <div class="segmented" id="toneSeg" role="group" aria-label="Tone"></div>
-        </div>
-        <div class="field">
-          <label>When an estimate has multiple options, which should the assistant focus on?</label>
-          <select id="optionPref" style="width:100%;font-size:13px;border:1px solid var(--border-2);border-radius:8px;padding:8px 10px;background:#fff">
-            <option value="first">The first option — we drag the one to push to the front</option>
-            <option value="highest">The highest-value option</option>
-            <option value="lowest">The lowest-price option</option>
-          </select>
-          <div class="hint">Housecall Pro lets you reorder an estimate's options — the assistant treats the first as your recommendation.</div>
-        </div>
-        <div class="field">
-          <label>Anything specific to mention or avoid? <span class="t-muted" style="font-weight:400">(optional)</span></label>
-          <textarea id="guidance" maxlength="200" placeholder="e.g. We don't service pools. Feel free to mention our 5-star Google rating."></textarea>
-        </div>
-        <div class="lockrow" style="align-items:flex-start">🔒 Built in, can't be changed: never offers a discount, never quotes a specific monthly payment, only answers from the estimate, and hands warm leads to your team instead of closing the deal itself.</div>
-        <div class="field" style="margin-top:16px">
-          <label>When the assistant stops for a customer <span class="t-muted" style="font-weight:400">(automatic)</span></label>
+        <div class="field" style="margin-top:4px">
+          <label>When the follow-up stops for a customer <span class="t-muted" style="font-weight:400">(automatic)</span></label>
           <div class="sumbox" style="display:flex;flex-direction:column;gap:7px">
             <div class="lockrow" style="color:var(--text-2);padding:0">✓ It hands them off as a warm lead</div>
             <div class="lockrow" style="color:var(--text-2);padding:0">✓ The estimate is marked sold or lost</div>
@@ -492,6 +451,34 @@
             <div class="lockrow" style="color:var(--text-2);padding:0">✓ All follow-ups have been sent</div>
           </div>
         </div>
+      </div>
+      <div id="wstep3" hidden>
+        <div class="field">
+          <label>Topics the assistant can bring up</label>
+          <div id="topicList"></div>
+          <div class="hint" style="margin-top:8px">The assistant writes each text itself and always answers questions from the estimate. These are the extra topics it's allowed to raise when they fit the conversation — turn on only what suits your business.</div>
+        </div>
+        <div class="field">
+          <label>Tone</label>
+          <div class="segmented" id="toneSeg" role="group" aria-label="Tone"></div>
+        </div>
+        <div class="field">
+          <label>When an estimate has multiple options, how should the assistant handle them?</label>
+          <select id="optionPref" style="width:100%;font-size:13px;border:1px solid var(--border-2);border-radius:8px;padding:8px 10px;background:#fff">
+            <option value="ask">Show all options and ask which they're leaning toward — then focus on that one</option>
+            <option value="first">Focus on the first option</option>
+            <option value="highest">Focus on the highest-value option</option>
+            <option value="lowest">Focus on the lowest-price option</option>
+          </select>
+          <div class="hint">"Ask which they prefer" mirrors how your team rehashes multi-option quotes — surface every option, let them pick, then dig into that one. Housecall Pro lets you reorder options if you'd rather the assistant lead with one.</div>
+        </div>
+        <div class="field">
+          <label>Rules <span class="t-muted" style="font-weight:400">(optional) — up to 5</span></label>
+          <div class="hint" style="margin-top:0;margin-bottom:8px">Specific instructions for the assistant — things to always say, or never say. One rule per box.</div>
+          <div id="rulesList"></div>
+          <button class="addrule" id="addRuleBtn" onclick="addCampRule()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add rule</button>
+        </div>
+        <div class="lockrow" style="align-items:flex-start">🔒 Built in, can't be changed: never names a specific discount or monthly payment, only answers from the estimate, and hands warm leads to your team instead of closing the deal itself.</div>
       </div>
     </div>
     <div class="drawer-f">
@@ -627,6 +614,7 @@ const R=(field,op,value)=>({field,op,value});
 /* Topics the assistant may proactively raise (each opt-in, like the old financing toggle) */
 const TOPICS=[
  {id:"financing",label:"Financing options",desc:"When price is the holdup, mention monthly-payment options and share your financing link.",def:true},
+ {id:"discount",label:"Room to move on price",desc:"When price is the sticking point, the assistant can say there may be room to move — but never names a figure. It hands off to your team to make the actual offer.",def:false},
  {id:"priceIncrease",label:"Price increase / quote expiring",desc:"An honest nudge that equipment prices keep rising — and offer a fresh quote.",def:true},
  {id:"warranty",label:"Warranty & what's included",desc:"Reassure what the price covers and the warranty — straight from the estimate.",def:true},
  {id:"scheduling",label:"Scheduling urgency",desc:"When the schedule's filling up, nudge them to book before wait times get longer — the top reason customers commit in peak season.",def:false},
@@ -637,9 +625,9 @@ const TONES=[["friendly","Friendly & casual"],["professional","Warm & profession
 function defaultTopics(){return Object.fromEntries(TOPICS.map(t=>[t.id,t.def]))}
 /* Merged model: each campaign owns its audience (filters) directly — no separate Segments object. */
 let campaigns=[
- {id:1,name:"Residential rehash",filters:{mode:"all",include:[R("status","is","Open"),R("created","more than","30"),R("cust","is","Residential")],exclude:[R("tag","is","no-AI")]},status:"active",rhythm:"5 texts over 8 days",topics:{financing:true,priceIncrease:true,warranty:true,scheduling:true,seasonal:false,maintenance:false},tone:"professional",guidance:"",stats:{cad:24,rep:17,hand:8}},
- {id:2,name:"Commercial follow-up",filters:{mode:"all",include:[R("status","is","Open"),R("created","more than","14"),R("cust","is","Commercial")],exclude:[R("tag","is","no-AI")]},status:"paused",rhythm:"3 texts over 4 days",topics:{financing:false,priceIncrease:true,warranty:true,scheduling:true,seasonal:false,maintenance:false},tone:"professional",guidance:"",stats:{cad:6,rep:4,hand:2}},
- {id:3,name:"Dormant winter revival",filters:{mode:"all",include:[R("status","is","Open"),R("created","more than","180")],exclude:[R("tag","is","no-AI")]},status:"draft",rhythm:"3 texts over 4 days",topics:{financing:true,priceIncrease:true,warranty:false,scheduling:true,seasonal:true,maintenance:false},tone:"professional",guidance:"",stats:{cad:0,rep:0,hand:0},blocked:"Dormant contacts need a consent record, a purchase in the last 18 months, or a Do-Not-Call check. 41 of 63 qualify so far."}
+ {id:1,name:"Residential rehash",filters:{mode:"all",include:[R("status","is","Open"),R("created","more than","30"),R("cust","is","Residential")],exclude:[R("tag","is","no-AI")]},status:"active",rhythm:"5 texts over 8 days · weekly ×4 · monthly ×3",pushTexts:5,pushDays:8,topics:{financing:true,priceIncrease:true,warranty:true,scheduling:true,seasonal:false,maintenance:false},tone:"professional",rules:["If it's been over 45 days, offer to send someone back out to re-check the job before re-quoting.","Mention our heat-load calculation — proper sizing is why we're worth it."],optionPref:"ask",followWeekly:true,followMonthly:true,stats:{cad:24,rep:17,hand:8}},
+ {id:2,name:"Commercial follow-up",filters:{mode:"all",include:[R("status","is","Open"),R("created","more than","14"),R("cust","is","Commercial")],exclude:[R("tag","is","no-AI")]},status:"paused",rhythm:"3 texts over 7 days · weekly ×4",pushTexts:3,pushDays:7,topics:{financing:false,priceIncrease:true,warranty:true,scheduling:true,seasonal:false,maintenance:false},tone:"professional",rules:[],optionPref:"ask",followWeekly:true,followMonthly:false,stats:{cad:6,rep:4,hand:2}},
+ {id:3,name:"Dormant winter revival",filters:{mode:"all",include:[R("status","is","Open"),R("created","more than","180")],exclude:[R("tag","is","no-AI")]},status:"draft",rhythm:"3 texts over 14 days · weekly ×4 · monthly ×3",pushTexts:3,pushDays:14,topics:{financing:true,priceIncrease:true,warranty:false,scheduling:true,seasonal:true,maintenance:false},tone:"professional",rules:[],optionPref:"ask",followWeekly:true,followMonthly:true,stats:{cad:0,rep:0,hand:0},blocked:"Dormant contacts need a consent record, a purchase in the last 18 months, or a Do-Not-Call check. 41 of 63 qualify so far."}
 ];
 let nextCampId=4;
 
@@ -760,8 +748,8 @@ let roster=[
  {ref:"#R-1033",name:"Tom Reyes",est:"Furnace Repair",val:"$1,180",campId:1,stage:"cadence",replied:false,wait:"—",next:"Text 2 of 5 sent · next text Thu 9:00 AM",conv:"R-1033"},
  {ref:"#R-1032",name:"Angela Wu",est:"Duct Repair",val:"$3,400",campId:1,stage:"cadence",replied:false,wait:"—",next:"Text 1 of 5 sent · next text Tue 10:00 AM",conv:null},
  {ref:"#R-1036",name:"Marcus Boyd",est:"Duct Repair",val:"$5,100",campId:1,stage:"cadence",replied:false,wait:"—",next:"Text 3 of 5 sent · next text Fri 4:00 PM",conv:null},
- {ref:"#R-1055",name:"Sofia Ramos",est:"Water Heater",val:"$2,600",campId:1,stage:"queued",replied:false,wait:"—",next:"First text tomorrow 9:00 AM (backlog day 2 of 3)",conv:null},
- {ref:"#R-1056",name:"Carla Espinoza",est:"Duct Repair",val:"$4,250",campId:1,stage:"queued",replied:false,wait:"—",next:"First text Thu 9:00 AM (backlog day 3 of 3)",conv:null},
+ {ref:"#R-1055",name:"Sofia Ramos",est:"Water Heater",val:"$2,600",campId:1,stage:"queued",replied:false,wait:"—",next:"First text tomorrow 9:00 AM",conv:null},
+ {ref:"#R-1056",name:"Carla Espinoza",est:"Duct Repair",val:"$4,250",campId:1,stage:"queued",replied:false,wait:"—",next:"First text Thu 9:00 AM",conv:null},
  {ref:"#R-1020",name:"Aaron Schultz",est:"AC Replacement",val:"$9,450",campId:1,stage:"sold",replied:true,wait:"—",next:"Booked with Roberto 🎉 — counted in recovered revenue",conv:null},
  {ref:"#R-1046",name:"Sam Nguyen",est:"Furnace Repair",val:"$960",campId:1,stage:"stopped",replied:true,wait:"—",next:"Said stop — never contacted again",conv:"R-1046"},
  {ref:"#R-1018",name:"Dana Whitfield",est:"Furnace Repair",val:"$1,310",campId:1,stage:"stopped",replied:false,wait:"—",next:"All 5 texts sent, no reply — resting until re-entry window",conv:null},
@@ -780,11 +768,11 @@ function rosterOutcome(r){
 /* ================= Service requests (production-shaped, lead capture) ================= */
 const SRSTATUS={needs_info:["Needs Info","badge-amber"],ready:["Ready to Schedule","badge-blue"],scheduled:["Scheduled","badge-blue"],completed:["Completed","badge-green"],canceled:["Canceled","badge-red"]};
 const srRows=[
- {ref:"#SR-2214",name:"Robert Casey",phone:"(512) 555-0193",job:"AC Repair",status:"needs_info",channel:"Missed-call SMS",lead:"Google Ads",created:"Today 11:42 AM",wait:"18m"},
- {ref:"#SR-2213",name:"Karen Boyle",phone:"(512) 555-0186",job:"AC Repair",status:"ready",channel:"Voice agent",lead:"Google Business",created:"Today 11:25 AM",wait:"35m"},
- {ref:"#SR-2212",name:"Luis Herrera",phone:"(512) 555-0171",job:"Duct Cleaning",status:"needs_info",channel:"Chatbot",lead:"Website",created:"Today 10:50 AM",wait:"1h 10m"},
- {ref:"#SR-2211",name:"Emily Tran",phone:"(512) 555-0164",job:"Furnace Tune-up",status:"scheduled",channel:"Booking form",lead:"Website",created:"Today 10:00 AM",wait:"2h"},
- {ref:"#SR-2208",name:"Hank Porter",phone:"(512) 555-0158",job:"Thermostat Install",status:"completed",channel:"Voice agent",lead:"Referral",created:"Yesterday 3:10 PM",wait:"—"}
+ {ref:"#SR-2214",name:"Robert Casey",phone:"(512) 555-0193",job:"AC Repair",status:"needs_info",channel:"Missed-call SMS",lead:"Google Ads",created:"Today 11:42 AM",wait:"18m",summary:"Missed call — AC isn't cooling. Needs service address and a preferred time before it can be booked."},
+ {ref:"#SR-2213",name:"Karen Boyle",phone:"(512) 555-0186",job:"AC Repair",status:"ready",channel:"Voice agent",lead:"Google Business",created:"Today 11:25 AM",wait:"35m",summary:"AC blowing warm air; wants the soonest available visit. All details captured — ready to schedule."},
+ {ref:"#SR-2212",name:"Luis Herrera",phone:"(512) 555-0171",job:"Duct Cleaning",status:"needs_info",channel:"Chatbot",lead:"Website",created:"Today 10:50 AM",wait:"1h 10m",summary:"Asked about duct-cleaning pricing over chat. Needs home size and system count to quote."},
+ {ref:"#SR-2211",name:"Emily Tran",phone:"(512) 555-0164",job:"Furnace Tune-up",status:"scheduled",channel:"Booking form",lead:"Website",created:"Today 10:00 AM",wait:"2h",summary:"Booked a seasonal furnace tune-up through the online form for this Friday AM."},
+ {ref:"#SR-2208",name:"Hank Porter",phone:"(512) 555-0158",job:"Thermostat Install",status:"completed",channel:"Voice agent",lead:"Referral",created:"Yesterday 3:10 PM",wait:"—",summary:"Smart-thermostat install captured by the voice agent — job completed."}
 ];
 /* Production intents (latest main: CategoryBadge.tsx) + the new Rehash intent.
    Third flag = dashed border (production's Pending / In Progress treatment). */
@@ -1039,15 +1027,15 @@ function openCampDrawer(id){
      <p class="hint">Built into the campaign — no separate segment to keep in sync. Estimates leave the moment they stop matching (e.g. when marked sold).</p>
      <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="closeAllDrawers();showClientsFor(${c.id})">See who's being rehashed →</button></div>
    <div class="dsec"><h4>Follow-up rhythm</h4>
-     <dl class="dl"><dt>Cadence</dt><dd>${c.rhythm} · first two a day apart, then every other day · business hours only</dd></dl></div>
+     <dl class="dl"><dt>First push</dt><dd>${c.pushTexts||5} texts over ${c.pushDays||8} days — front-loaded, business hours only</dd><dt>Then</dt><dd>${[c.followWeekly!==false?"every week for 4 weeks":null,c.followMonthly!==false?"every month for 3 months":null].filter(Boolean).join(", then ")||"stops after the first push"} — until they reply or say "stop"</dd></dl></div>
    <div class="dsec"><h4>What the assistant can bring up</h4>
      <div style="display:flex;flex-direction:column;gap:5px;font-size:13px">
        ${TOPICS.filter(t=>c.topics&&c.topics[t.id]).map(t=>`<div>✓ ${t.label}</div>`).join("")||'<div class="t-muted">Just answers questions — no extra topics</div>'}
      </div>
-     <dl class="dl" style="margin-top:11px"><dt>Tone</dt><dd>${(TONES.find(x=>x[0]===c.tone)||["","—"])[1]}</dd><dt>Multiple options</dt><dd>${c.optionPref==="highest"?"Focus on the highest-value option":c.optionPref==="lowest"?"Focus on the lowest-price option":"Focus on the first (recommended) option"}</dd>${c.guidance?`<dt>Your note</dt><dd>${c.guidance}</dd>`:""}</dl></div>
+     <dl class="dl" style="margin-top:11px"><dt>Tone</dt><dd>${(TONES.find(x=>x[0]===c.tone)||["","—"])[1]}</dd><dt>Multiple options</dt><dd>${c.optionPref==="highest"?"Focus on the highest-value option":c.optionPref==="lowest"?"Focus on the lowest-price option":c.optionPref==="first"?"Focus on the first (recommended) option":"Show all options and ask which they prefer, then focus on it"}</dd>${c.rules&&c.rules.length?`<dt>Rules</dt><dd>${c.rules.map(r=>"• "+r).join("<br>")}</dd>`:""}</dl></div>
    <div class="dsec"><h4>Always &amp; never (built in)</h4>
      <dl class="dl">
-       <dt>Discounts</dt><dd>Never — hardwired</dd>
+       <dt>Discounts</dt><dd>Never names a figure — your team makes the offer${c.topics&&c.topics.discount?" (can hint there's room)":""}</dd>
        <dt>Payment amounts</dt><dd>Never quotes a specific $/month</dd>
        <dt>Answers</dt><dd>Only from the estimate — never invents</dd>
        <dt>Identity</dt><dd>Texts as your company; says it's automated if asked</dd>
@@ -1142,7 +1130,7 @@ function leadAttnBanner(kind,active){
 }
 function renderOppsPage(){
   const root=document.getElementById("oppsRoot");
-  const one=iaOption==="one";
+  const one=iaOption==="one", three=iaOption==="three";
   const searchbar=`
    <div class="toolbar">
      <div class="searchbox"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -1150,17 +1138,22 @@ function renderOppsPage(){
      <button class="btn btn-outline btn-sm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>Filter</button>
      <button class="btn btn-outline btn-sm" onclick="toast('Would export CSV')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export</button>
    </div>`;
-  if(one){
-    const captured=srRows.map(s=>({ref:s.ref,name:s.name,phone:s.phone,job:s.job,status:s.status,src:s.channel,value:null,wait:s.wait,rehash:false}));
+  if(one||three){
+    const captured=srRows.map(s=>({ref:s.ref,name:s.name,phone:s.phone,job:s.job,status:s.status,src:s.channel,value:null,wait:s.wait,summary:s.summary,rehash:false}));
     const rehashAll=roster.map(r=>({
       ref:r.ref,name:r.name,phone:(estimates.find(e=>e.name===r.name)||{}).phone||"—",
-      job:r.est,stage:r.stage,src:"Rehash SMS",value:r.val,wait:r.wait,rehash:true}));
+      job:r.est,stage:r.stage,src:"Rehash SMS",value:r.val,wait:r.wait,rehash:true,
+      summary:(r.conv&&conversations[r.conv]?conversations[r.conv].summary:r.next)}));
     const attnRows=captured.filter(s=>SR_ATTN(s.status)).concat(rehashAll.filter(o=>o.stage==="hot"||o.stage==="interested"));
     const srcTabs=[["attention","Needs attention",attnRows.length],["lead","Captured Leads",captured.length],["rehash","Rehashed Leads",rehashAll.length]];
     const SR_SUB=[["attention","Needs attention"],["scheduled","Scheduled"],["completed","Completed"],["canceled","Canceled"]];
     const stageIs=(o,k)=>k==="attention"?(o.stage==="hot"||o.stage==="interested"):k==="cadence"?(o.stage==="cadence"||o.stage==="queued"):o.stage===k;
     let rows,subHtml="",banner="";
-    if(oppTab==="lead"){
+    if(three){
+      const capAttn=captured.filter(s=>SR_ATTN(s.status)), rehAttn=rehashAll.filter(o=>o.stage==="hot"||o.stage==="interested");
+      rows=oppTab==="lead"?capAttn:oppTab==="rehash"?rehAttn:attnRows;
+      banner=`<div class="attn-bar"><b>These need you.</b> Warm rehashed leads to call — Hot Leads to close, Interested ones to answer — plus captured leads that need a booking or more info.</div>`;
+    }else if(oppTab==="lead"){
       rows=captured.filter(s=>srMatch(s.status,oppStatusTab));
       subHtml=SR_SUB.map(([k,l])=>{
         const n=captured.filter(s=>srMatch(s.status,k)).length;
@@ -1183,8 +1176,8 @@ function renderOppsPage(){
       const st=STAGES[o.stage];
       return `<span class="badge ${st.badge}">${o.stage==="hot"||o.stage==="interested"?'<span class="dot"></span>':""}${st.label}</span>`};
     root.innerHTML=`
-     <div class="page-h"><div><h1>Opportunities</h1><p>Every chance to win a job, from every agent. <b>Needs attention</b> is what to work now — the rest is the assistant running.</p></div></div>
-     <nav class="utabs" role="tablist">${srcTabs.map(([k,l,n])=>`<button class="utab ${k==="attention"?"attn ":""}${oppTab===k?"active":""}" role="tab" onclick="setOppSource('${k}')">${l}<span class="cnt">${n}</span></button>`).join("")}</nav>
+     <div class="page-h"><div><h1>${three?"Needs attention":"Opportunities"}</h1><p>${three?"Everything that needs a human right now — across every agent. Warm rehashed leads to call, plus captured leads that need a booking or more info.":"Every chance to win a job, from every agent. <b>Needs attention</b> is what to work now — the rest is the assistant running."}</p></div></div>
+     <nav class="utabs" role="tablist">${(three?[["attention","All",attnRows.length],["lead","Captured Leads",captured.filter(s=>SR_ATTN(s.status)).length],["rehash","Rehashed Leads",rehashAll.filter(o=>o.stage==="hot"||o.stage==="interested").length]]:srcTabs).map(([k,l,n])=>`<button class="utab ${(k==="attention"&&!three)?"attn ":""}${oppTab===k?"active":""}" role="tab" onclick="setOppSource('${k}')">${l}<span class="cnt">${n}</span></button>`).join("")}</nav>
      ${subHtml?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin:14px 0 0">${subHtml}</div>`:""}
      ${banner}
      <div class="toolbar">
@@ -1193,20 +1186,21 @@ function renderOppsPage(){
        <button class="btn btn-outline btn-sm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>Filter</button>
        <button class="btn btn-outline btn-sm" onclick="toast('Would export CSV')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export</button>
      </div>
-     <div class="tablewrap"><table>
-      <thead><tr><th style="width:86px">Ref</th><th style="width:150px">Contact</th><th style="width:130px">Phone</th><th>Job Type</th><th style="width:170px">Status</th><th style="width:140px">Source</th><th style="width:90px">Value</th><th style="width:100px">Waiting</th></tr></thead>
+     <div class="tablewrap"><table style="min-width:1200px">
+      <thead><tr><th style="width:86px">Ref</th><th style="width:150px">Contact</th><th style="width:130px">Phone</th><th style="width:130px">Job Type</th><th style="min-width:300px">Summary</th><th style="width:150px">Status</th><th style="width:130px">Source</th><th style="width:90px">Value</th><th style="width:100px">Waiting</th></tr></thead>
       <tbody>${rows.map(o=>`
         <tr class="rowbtn" onclick="${o.rehash?`openLeadDrawer('${o.name.replace(/'/g,"\\'")}')`:`toast('Would open the service request drawer — unchanged from production')`}">
           <td class="t-num t-muted">${o.ref}</td>
           <td class="t-name">${o.name}</td>
           <td class="t-num t-muted">${o.phone}</td>
           <td class="t-muted">${o.job}</td>
+          <td><div class="sum-cell" title="${(o.summary||"").replace(/"/g,"&quot;")}">${o.summary||'<span class="t-muted">—</span>'}</div></td>
           <td>${statusCell(o)}</td>
           <td><span class="badge badge-outline">${o.src}</span></td>
           <td class="t-num">${o.value||'<span class="t-muted">—</span>'}</td>
           <td class="t-muted">${o.wait&&o.wait!=="—"?"⏱ "+o.wait:"—"}</td>
-        </tr>`).join("")||'<tr><td colspan="8"><div class="empty">Nobody here right now.</div></td></tr>'}</tbody></table></div>
-     <div class="pagefoot">Showing ${rows.length} of ${captured.length+rehashAll.length} · every agent — today's and future ones — feeds this same queue.</div>`;
+        </tr>`).join("")||'<tr><td colspan="9"><div class="empty">Nobody here right now.</div></td></tr>'}</tbody></table></div>
+     <div class="pagefoot">${three?`Showing ${rows.length} · the cross-agent priority queue. Each agent's full pipeline lives in its own section.`:`Showing ${rows.length} of ${captured.length+rehashAll.length} · every agent — today's and future ones — feeds this same queue.`}</div>`;
   }else{
     if(!["attention","scheduled","completed","canceled"].includes(oppStatusTab))oppStatusTab="attention";
     const tabs=[["attention","Needs attention"],["scheduled","Scheduled"],["completed","Completed"],["canceled","Canceled"]];
@@ -1217,19 +1211,20 @@ function renderOppsPage(){
      <nav class="utabs" role="tablist">${tabs.map(([k,l])=>{const n=srRows.filter(s=>srMatch(s.status,k)).length;const attn=k==="attention";return `<button class="utab ${attn?"attn ":""}${oppStatusTab===k?"active":""}" role="tab" onclick="oppStatusTab='${k}';renderOppsPage()">${l}<span class="cnt">${n}</span></button>`}).join("")}</nav>
      ${banner}
      ${searchbar}
-     <div class="tablewrap"><table>
-      <thead><tr><th style="width:86px">Ref</th><th style="width:150px">Contact</th><th style="width:130px">Phone</th><th>Job Type</th><th style="width:160px">Status</th><th style="width:140px">Channel</th><th style="width:130px">Lead Source</th><th style="width:130px">Created</th></tr></thead>
+     <div class="tablewrap"><table style="min-width:1200px">
+      <thead><tr><th style="width:86px">Ref</th><th style="width:150px">Contact</th><th style="width:130px">Phone</th><th style="width:130px">Job Type</th><th style="min-width:300px">Summary</th><th style="width:150px">Status</th><th style="width:130px">Channel</th><th style="width:120px">Lead Source</th><th style="width:130px">Created</th></tr></thead>
       <tbody>${rows.map(s=>`
         <tr class="rowbtn" onclick="toast('Would open the service request drawer — unchanged from production')">
           <td class="t-num t-muted">${s.ref}</td>
           <td class="t-name">${s.name}</td>
           <td class="t-num t-muted">${s.phone}</td>
           <td class="t-muted">${s.job}</td>
+          <td><div class="sum-cell" title="${(s.summary||"").replace(/"/g,"&quot;")}">${s.summary||'<span class="t-muted">—</span>'}</div></td>
           <td><span class="badge ${SRSTATUS[s.status][1]}">${SRSTATUS[s.status][0]}</span></td>
           <td><span class="badge badge-outline">${s.channel}</span></td>
           <td class="t-muted">${s.lead}</td>
           <td class="t-muted">${s.created}</td>
-        </tr>`).join("")||'<tr><td colspan="8"><div class="empty">No requests with this status.</div></td></tr>'}</tbody></table></div>
+        </tr>`).join("")||'<tr><td colspan="9"><div class="empty">No requests with this status.</div></td></tr>'}</tbody></table></div>
      <div class="pagefoot">Showing ${rows.length} of ${srRows.length} — exactly the production experience, untouched. Rehash lives in Rehashed Leads.</div>`;
   }
 }
@@ -1247,7 +1242,7 @@ function renderRLPage(){
   const rows=roster.filter(r=>rlStageMatch(r,rlTab)&&(rlCampFilter==="all"||r.campId===rlCampFilter));
   const banner=leadAttnBanner("rehash",rlTab);
   root.innerHTML=`
-   <div class="page-h"><div><h1>Rehashed Leads</h1><p>Only <b>Needs attention</b> needs you. Everything else is the assistant working — shown for visibility.</p></div></div>
+   <div class="page-h"><div><h1>${iaOption==="three"?"Conversations":"Rehashed Leads"}</h1><p>Only <b>Needs attention</b> needs you. Everything else is the assistant working — shown for visibility.</p></div></div>
    <nav class="utabs" role="tablist">${RL_TABS.map(([k,l])=>`<button class="utab ${k==="attention"?"attn ":""}${rlTab===k?"active":""}" role="tab" onclick="rlTab='${k}';renderRLPage()">${l}<span class="cnt">${counts[k]}</span></button>`).join("")}</nav>
    ${banner}
    <div class="toolbar">
@@ -1288,12 +1283,16 @@ function convRowsData(){
 }
 function renderConvPage(){
   const root=document.getElementById("convRoot");
-  const one=iaOption==="one";
+  const one=iaOption==="one", three=iaOption==="three";
   const all=convRowsData();
   const passes=c=>convFilters.intents[c.intent]&&convFilters.channels[c.channel]&&
     (c.outcome==="no_answer"?convFilters.noAnswer:convFilters.outcomes[c.outcome])&&
     (convCampFilter==="all"||(c.rehash&&c.campId===convCampFilter));
-  const inTab=c=>convTab==="all"||(convTab==="lead"?!c.rehash:c.rehash);
+  /* Option C: one tab per conversation intent, led by a "Needs attention" grouping (Service Request + Customer Support). */
+  const cIntentTabs=[["attention","Needs attention"],["all","All"]].concat(Object.keys(INTENTS).filter(k=>k!=="rehash").map(k=>[k,INTENTS[k][0]]));
+  if(three&&!cIntentTabs.some(([k])=>k===convTab))convTab="attention";
+  const cMatch=(c,tab)=>tab==="all"?true:tab==="attention"?(c.intent==="service_request"||c.intent==="customer_support"):c.intent===tab;
+  const inTab=three?(c=>cMatch(c,convTab)):(c=>convTab==="all"||(convTab==="lead"?!c.rehash:c.rehash));
   const visible=all.filter(c=>passes(c)&&inTab(c));
   const tabCounts={all:all.filter(passes).length,lead:all.filter(c=>passes(c)&&!c.rehash).length,rehash:all.filter(c=>passes(c)&&c.rehash).length};
   const hiddenN=all.filter(c=>c.outcome==="no_answer"&&convFilters.intents.rehash).length;
@@ -1305,9 +1304,9 @@ function renderConvPage(){
   const intentKeys=Object.keys(INTENTS).filter(k=>one||k!=="rehash");
   const outcomeKeys=Object.keys(OUTCOMES).filter(k=>k!=="no_answer"&&(one||(k!=="stopped")));
   root.innerHTML=`
-   <div class="page-h"><div><h1>Conversations</h1><p>${one?"Review conversations across your AI agents — including estimate rehash.":"Review conversations across your AI agents."}</p></div></div>
-   ${one?`<nav class="utabs" role="tablist">${[["all","All"],["lead","Captured Leads"],["rehash","Rehashed Leads"]].map(([k,l])=>`<button class="utab ${convTab===k?"active":""}" role="tab" onclick="convTab='${k}';renderConvPage()">${l}<span class="cnt">${tabCounts[k]}</span></button>`).join("")}</nav>`:""}
-   <div class="toolbar" style="margin-top:${one?"14px":"18px"}">
+   <div class="page-h"><div><h1>Conversations</h1><p>${one?"Review conversations across your AI agents — including estimate rehash.":iaOption==="three"?"Every lead-capture conversation — voice, chat, and booking form.":"Review conversations across your AI agents."}</p></div></div>
+   ${one?`<nav class="utabs" role="tablist">${[["all","All"],["lead","Captured Leads"],["rehash","Rehashed Leads"]].map(([k,l])=>`<button class="utab ${convTab===k?"active":""}" role="tab" onclick="convTab='${k}';renderConvPage()">${l}<span class="cnt">${tabCounts[k]}</span></button>`).join("")}</nav>`:three?`<nav class="utabs" role="tablist">${cIntentTabs.map(([k,l])=>`<button class="utab ${k==="attention"?"attn ":""}${convTab===k?"active":""}" role="tab" onclick="convTab='${k}';renderConvPage()">${l}<span class="cnt">${all.filter(c=>passes(c)&&cMatch(c,k)).length}</span></button>`).join("")}</nav>`:""}
+   <div class="toolbar" style="margin-top:${one||three?"14px":"18px"}">
      <div class="searchbox"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
        <input placeholder="Search conversations..." aria-label="Search conversations" oninput="toast('Search is decorative in this prototype')"></div>
      <button class="btn btn-outline btn-sm" onclick="toast('Would open the date range picker — unchanged from production')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Date range</button>
@@ -1360,7 +1359,19 @@ function closeAllDrawers(){
 }
 
 /* ================= Wizard ================= */
-let wstep=1,editingCampId=null,wizTopics=defaultTopics(),wizTone="professional";
+let wstep=1,editingCampId=null,wizTopics=defaultTopics(),wizTone="professional",wizRules=[];
+function renderCampRules(){
+  const esc=s=>(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  document.getElementById("rulesList").innerHTML=wizRules.map((r,i)=>`
+   <div style="display:flex;gap:6px;align-items:flex-start;margin-bottom:6px">
+     <textarea maxlength="280" rows="1" placeholder="e.g. If it's been over 45 days, offer to send someone back out to re-check the job first." oninput="wizRules[${i}]=this.value;this.style.height='auto';this.style.height=this.scrollHeight+'px'" style="flex:1;font-size:13px;border:1px solid var(--border-2);border-radius:8px;padding:8px 10px;background:#fff;resize:none;overflow:hidden;line-height:1.45;min-height:38px;font-family:inherit">${esc(r)}</textarea>
+     <button class="icon-btn tiny" style="margin-top:6px" title="Remove rule" aria-label="Remove rule" onclick="removeCampRule(${i})">✕</button>
+   </div>`).join("");
+  document.querySelectorAll("#rulesList textarea").forEach(t=>{t.style.height="auto";t.style.height=t.scrollHeight+"px"});
+  const a=document.getElementById("addRuleBtn");if(a)a.style.display=wizRules.length>=5?"none":"inline-flex";
+}
+function addCampRule(){if(wizRules.length>=5)return;wizRules.push("");renderCampRules();}
+function removeCampRule(i){wizRules.splice(i,1);renderCampRules();}
 function renderTopics(){
   document.getElementById("topicList").innerHTML=TOPICS.map(t=>`
    <div class="topic">
@@ -1380,66 +1391,97 @@ function openWizard(campId){
   document.getElementById("campName").value=c?c.name:"";
   wizTopics=c&&c.topics?{...c.topics}:defaultTopics();
   wizTone=c?c.tone:"professional";
-  document.getElementById("guidance").value=c?c.guidance||"":"";
-  renderTopics();renderTone();renderRuleUI();
-  document.querySelectorAll('input[name=cad]').forEach(r=>{r.checked=(r.value==="standard");r.closest(".radio-card").classList.toggle("sel",r.checked)});
-  document.getElementById("customRhythm").style.display="none";
-  document.getElementById("optionPref").value=c?c.optionPref||"first":"first";
+  wizRules=c&&c.rules?[...c.rules]:[];
+  renderTopics();renderTone();renderCampRules();renderRuleUI();
+  const push=c?{texts:c.pushTexts||5,days:c.pushDays||8}:PUSH_PRESETS.standard;
+  let presetKey="custom";
+  for(const k in PUSH_PRESETS)if(PUSH_PRESETS[k].texts===push.texts&&PUSH_PRESETS[k].days===push.days)presetKey=k;
+  document.querySelectorAll('input[name=cad]').forEach(r=>{r.checked=(r.value===presetKey);r.closest(".radio-card").classList.toggle("sel",r.checked)});
+  document.getElementById("cTouches").value=push.texts;
+  const dayOpts=[...document.querySelectorAll("#cDays option")].map(o=>+o.value);
+  document.getElementById("cDays").value=dayOpts.includes(push.days)?push.days:10;
+  document.getElementById("customRhythm").style.display=(presetKey==="custom")?"flex":"none";
+  document.getElementById("optionPref").value=c?c.optionPref||"first":"ask";
   document.getElementById("wkndSwitch").classList.toggle("on",c?c.weekends!==false:true);
+  document.getElementById("weeklySwitch").classList.toggle("on",c?c.followWeekly!==false:true);
+  document.getElementById("monthlySwitch").classList.toggle("on",c?c.followMonthly!==false:true);
   syncWiz();
   openDrawerEl("wizDrawer");
 }
-/* Relative cadence: text 1 on day 1, text 2 the next day, then every other day. */
-function cadenceCount(){
+/* First push = N texts front-loaded across D days. Presets state both numbers; custom sets both. */
+const PUSH_PRESETS={standard:{texts:5,days:8},gentle:{texts:3,days:7}};
+function cadenceFirstPush(){
   const v=(document.querySelector('input[name=cad]:checked')||{}).value||"standard";
-  return v==="standard"?5:v==="gentle"?3:+document.getElementById("cTouches").value;
+  if(v==="custom")return {texts:+document.getElementById("cTouches").value,days:+document.getElementById("cDays").value};
+  return PUSH_PRESETS[v]||PUSH_PRESETS.standard;
 }
-function cadenceOffsets(n){return Array.from({length:n},(_,k)=>k===0?1:2*k)}
+/* Front-loaded distribution: day 1, a quick day-2 touch, then spread the rest evenly out to day D. */
+function cadenceOffsets(n,days){
+  n=Math.max(1,Math.round(n));
+  if(n===1)return [1];
+  days=Math.max(2,Math.round(days||2*(n-1)));
+  const out=[1];
+  if(n>=3&&days>=3)out.push(2);
+  const remaining=n-out.length, start=out[out.length-1];
+  for(let i=1;i<=remaining;i++)out.push(Math.round(start+(days-start)*i/remaining));
+  for(let i=1;i<out.length;i++)if(out[i]<=out[i-1])out[i]=out[i-1]+1;
+  return out;
+}
+/* Escalating plan: front-loaded burst → optional weekly (×4) → optional monthly (×3). */
+function phaseOn(id){const el=document.getElementById(id);return el?el.classList.contains("on"):true}
+function cadencePlan(){
+  const fp=cadenceFirstPush();
+  const burst=cadenceOffsets(fp.texts,fp.days);
+  const phases=[{key:"burst",label:"First push",touches:burst.map(d=>({day:d,rel:"Day "+d}))}];
+  let last=burst[burst.length-1];
+  if(phaseOn("weeklySwitch")){const t=[];for(let i=1;i<=4;i++){last+=7;t.push({day:last,rel:"Wk "+i})}phases.push({key:"weekly",label:"Weekly · 4 wks",touches:t});}
+  if(phaseOn("monthlySwitch")){const t=[];for(let i=1;i<=3;i++){last+=30;t.push({day:last,rel:"Mo "+i})}phases.push({key:"monthly",label:"Monthly · 3 mo",touches:t});}
+  return phases;
+}
 function renderCadence(){
   const el=document.getElementById("cadViz");if(!el)return;
-  const n=cadenceCount(), days=cadenceOffsets(n), maxD=days[days.length-1];
+  const phases=cadencePlan();
   const wknd=document.getElementById("wkndSwitch").classList.contains("on");
-  const markers=days.map((d,i)=>{
-    const pct=maxD===1?0:((d-1)/(maxD-1))*100;
-    const gap=i===0?"":(days[i]-days[i-1]);
-    return `<div style="position:absolute;left:${pct}%;top:0;transform:translateX(-50%);text-align:center">
-      <div style="font-size:10px;font-weight:600;color:var(--brand-active);white-space:nowrap;margin-bottom:6px">Text ${i+1}</div>
-      <div style="width:13px;height:13px;border-radius:99px;background:var(--brand);margin:0 auto;box-shadow:0 0 0 3px var(--brand-tint)"></div>
-      <div style="font-size:11px;font-weight:600;margin-top:7px;white-space:nowrap">Day ${d}</div>
-      ${gap?`<div style="font-size:10px;color:var(--text-3);white-space:nowrap">+${gap}d</div>`:`<div style="font-size:10px;color:var(--text-3)">start</div>`}
+  const total=phases.reduce((s,p)=>s+p.touches.length,0);
+  const lastDay=phases[phases.length-1].touches.slice(-1)[0].day;
+  const COL={burst:"var(--brand)",weekly:"#13C2C2",monthly:"#722ED1"};
+  let num=0;
+  const groups=phases.map(p=>{
+    const dots=p.touches.map(t=>{num++;return `<div style="flex:1;min-width:40px;text-align:center">
+        <div style="font-size:9.5px;color:var(--text-3);margin-bottom:5px">#${num}</div>
+        <div style="width:11px;height:11px;border-radius:99px;background:${COL[p.key]};margin:0 auto;box-shadow:0 0 0 3px #fff"></div>
+        <div style="font-size:10.5px;font-weight:600;margin-top:6px;white-space:nowrap">${t.rel}</div>
+        <div style="font-size:9.5px;color:var(--text-3);white-space:nowrap">day ${t.day}</div>
+      </div>`}).join("");
+    return `<div style="min-width:${p.touches.length*42}px">
+      <div style="font-size:9.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:${COL[p.key]};text-align:center;margin-bottom:8px">${p.label}</div>
+      <div style="display:flex;gap:2px;position:relative"><div style="position:absolute;left:8px;right:8px;top:20px;height:2px;background:var(--border-2)"></div>${dots}</div>
     </div>`;
-  }).join("");
+  }).join('<div style="align-self:stretch;border-left:1px dashed var(--border-2);margin:20px 8px 0"></div>');
   el.innerHTML=`
-    <div style="border:1px solid var(--border);border-radius:12px;background:var(--muted-30);padding:16px 26px 12px">
-      <div style="position:relative;height:72px">
-        <div style="position:absolute;left:0;right:0;top:22px;height:2px;background:var(--border-2)"></div>
-        ${markers}
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-3);border-top:1px dashed var(--border);padding-top:8px;margin-top:2px">
-        <span>⏱ Relative to each estimate's entry day</span>
-        <span><b>${n}</b> texts across <b>${maxD}</b> days${wknd?"":" · weekends skipped"}</span>
+    <div style="border:1px solid var(--border);border-radius:12px;background:var(--muted-30);padding:16px 18px 12px;overflow-x:auto">
+      <div style="display:flex;align-items:flex-start;width:max-content;min-width:100%">${groups}</div>
+      <div style="display:flex;justify-content:space-between;gap:12px;font-size:11px;color:var(--text-3);border-top:1px dashed var(--border);padding-top:8px;margin-top:12px">
+        <span>⏱ Relative to each estimate's entry day · stops the moment they reply or say "stop"</span>
+        <span style="white-space:nowrap"><b>${total}</b> touches over ~${lastDay} days${wknd?"":" · weekends skipped"}</span>
       </div>
     </div>`;
 }
 function unionCount(){return matchRows(tempSeg).length}
 function rhythmLabel(){
-  const n=cadenceCount(), d=cadenceOffsets(n);
-  return `${n} texts over ${d[d.length-1]} days`;
+  const fp=cadenceFirstPush(), phases=cadencePlan();
+  let s=`${fp.texts} texts over ${fp.days} days`;
+  if(phases.some(p=>p.key==="weekly"))s+=" · weekly ×4";
+  if(phases.some(p=>p.key==="monthly"))s+=" · monthly ×3";
+  return s;
 }
 function syncWiz(){
   [1,2,3].forEach(i=>{
     document.getElementById("wstep"+i).hidden=(i!==wstep);
     document.getElementById("sd"+i).classList.toggle("on",i<=wstep);
   });
-  if(wstep===2){
-    renderCadence();
-    document.getElementById("backlogBox").style.display=editingCampId?"none":"block";
-    if(!editingCampId){
-      document.getElementById("backlogN").textContent=unionCount();
-      const nm=document.getElementById("campName").value.trim();
-      document.getElementById("backlogSeg").textContent=nm?`"${nm}"`:"this audience";
-    }
-  }
+  if(wstep===2)renderCadence();
+  if(wstep===3)document.querySelectorAll("#rulesList textarea").forEach(t=>{t.style.height="auto";t.style.height=t.scrollHeight+"px"});
   document.getElementById("wBack").textContent=wstep===1?"Cancel":"Back";
   document.getElementById("wNext").textContent=wstep===3?(editingCampId?"Save changes":"Launch campaign"):wNextLabels[wstep-1];
   document.getElementById("wKicker").textContent=editingCampId?"EDIT CAMPAIGN":"NEW CAMPAIGN";
@@ -1449,20 +1491,21 @@ function wizNext(){
   if(wstep===1&&!matchRows(tempSeg).length){toast("No estimates match this audience yet — loosen a rule");return}
   if(wstep<3){wstep++;syncWiz();return}
   const name=document.getElementById("campName").value.trim()||"Untitled campaign";
+  const fp=cadenceFirstPush();
   const data={name,filters:JSON.parse(JSON.stringify(tempSeg)),rhythm:rhythmLabel(),
-    topics:{...wizTopics},tone:wizTone,guidance:document.getElementById("guidance").value.trim(),
-    optionPref:document.getElementById("optionPref").value,weekends:document.getElementById("wkndSwitch").classList.contains("on")};
+    topics:{...wizTopics},tone:wizTone,rules:wizRules.map(r=>r.trim()).filter(Boolean),
+    optionPref:document.getElementById("optionPref").value,weekends:document.getElementById("wkndSwitch").classList.contains("on"),
+    pushTexts:fp.texts,pushDays:fp.days,
+    followWeekly:document.getElementById("weeklySwitch").classList.contains("on"),followMonthly:document.getElementById("monthlySwitch").classList.contains("on")};
   if(editingCampId){
     Object.assign(campaigns.find(c=>c.id===editingCampId),data);
     closeAllDrawers();refreshAll();showPage("rehash");
     toast(`${name} updated — changes apply from the next send`);
   }else{
-    const backlog=document.getElementById("backlogSwitch").classList.contains("on");
     const n=unionCount();
-    campaigns.unshift({id:nextCampId++,...data,status:"active",stats:{cad:backlog?n:0,rep:0,hand:0}});
+    campaigns.unshift({id:nextCampId++,...data,status:"active",stats:{cad:n,rep:0,hand:0}});
     closeAllDrawers();refreshAll();showPage("rehash");
-    toast(backlog?`${name} is live — ${n} backlog estimates spread over the next 3 days, first texts tomorrow 9 AM`
-                 :`${name} is live — it will pick up new estimates as they match`);
+    toast(`${name} is live — ${n} matching estimates enter now, and new ones join as they match`);
   }
 }
 function wizBack(){
@@ -1470,33 +1513,78 @@ function wizBack(){
   else{wstep--;syncWiz()}
 }
 
+/* ================= Sidebar navigation (dynamic per IA option) ================= */
+const NAVICONS={
+  dashboard:'<rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/>',
+  attention:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>',
+  opps:'<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6M9 16h6"/>',
+  rehashLeads:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/>',
+  conv:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+  contacts:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
+  voice:'<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>',
+  chatbot:'<path d="M12 8V4H8"/><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M2 14h2M20 14h2M15 13v2M9 13v2"/>',
+  booking:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/>',
+  rehash:'<path d="M3 12a9 9 0 0 1 15.36-6.36L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15.36 6.36L3 16"/><path d="M3 21v-5h5"/>',
+  settings:'<circle cx="12" cy="12" r="3"/><path d="M12 2v2m0 16v2m10-10h-2M4 12H2m17.07-7.07-1.41 1.41M6.34 17.66l-1.41 1.41m14.14 0-1.41-1.41M6.34 6.34 4.93 4.93"/>',
+  sliders:'<line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>',
+  team:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
+  jobtypes:'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
+  integrations:'<path d="M12 22v-5"/><path d="M9 8V2h6v6"/><path d="M5 8h14a1 1 0 0 1 1 1v3a5 5 0 0 1-5 5h-6a5 5 0 0 1-5-5V9a1 1 0 0 1 1-1z"/>'
+};
+function niSvg(k){return `<svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${NAVICONS[k]}</svg>`}
+let navExpand={leadSettings:false,rehashSettings:false};
+function navToggle(k){navExpand[k]=!navExpand[k];renderNav();}
+function navGo(page,src){if(src){oppTab=src;oppStatusTab="attention";}showPage(page);}
+function renderNav(){
+  const three=iaOption==="three", one=iaOption==="one";
+  const item=(label,icon,page,opts)=>{
+    opts=opts||{};
+    const active=!!page&&curPage===page;
+    const onclick=opts.onclick||(page?`showPage('${page}')`:`toast('${label} — unchanged in this prototype')`);
+    const style=opts.sub?' style="padding-left:34px;height:34px"':"";
+    return `<button class="nav-item ${active?"active":""}"${style}${active?' aria-current="page"':""} onclick="${onclick}">${niSvg(icon)}<span>${label}</span>${opts.badge||""}</button>`;
+  };
+  const grp=t=>`<div class="nav-group">${t}</div>`;
+  const toggle=(key,open)=>`<button class="nav-item" onclick="navToggle('${key}')" aria-expanded="${open}">${niSvg('sliders')}<span>Settings</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:auto;transition:transform .15s;transform:rotate(${open?90:0}deg)"><polyline points="9 18 15 12 9 6"/></svg></button>`;
+  let h;
+  if(three){
+    const leadOpen=navExpand.leadSettings, rehashOpen=navExpand.rehashSettings||curPage==="rehash";
+    h=grp("General")+item("Dashboard","dashboard")+item("Needs attention","attention","opps",{onclick:"navGo('opps','attention')"})
+     +grp("Lead Capture")+item("Conversations","conv","conv")+toggle("leadSettings",leadOpen)
+       +(leadOpen?item("Voice Agent","voice",null,{sub:true})+item("Chatbot","chatbot",null,{sub:true})+item("Booking Form","booking",null,{sub:true}):"")
+     +grp("Estimates Rehashing")+item("Conversations","conv","rl")+toggle("rehashSettings",rehashOpen)
+       +(rehashOpen?item("Rehashing Agent","rehash","rehash",{sub:true,badge:'<span class="nav-new">NEW</span>'}):"")
+     +grp("Company")+item("Settings","settings")+item("Team","team")+item("Job Types","jobtypes");
+  }else{
+    h=grp("General")+item("Dashboard","dashboard")+item(one?"Opportunities":"Service Requests","opps","opps")+(one?"":item("Rehashed Leads","rehashLeads","rl"))+item("Conversations","conv","conv")+item("Contacts","contacts")
+     +grp("Agents &amp; Tools")+item("Voice Agent","voice")+item("Website Chatbot","chatbot")+item("Booking Form","booking")+item("Estimate Rehashing","rehash","rehash",{badge:'<span class="nav-new">NEW</span>'})
+     +grp("Company")+item("Settings","settings")+item("Team","team")+item("Job Types","jobtypes")+item("Integrations","integrations");
+  }
+  document.getElementById("navRoot").innerHTML=h;
+}
+
 /* ================= Router + IA switch ================= */
 function showPage(p){
   if(p==="rl"&&iaOption==="one")p="opps"; /* Option A has no Rehashed Leads page — it lives inside Opportunities */
   curPage=p;
   ["rehash","opps","rl","conv"].forEach(x=>document.getElementById("page-"+x).hidden=(x!==p));
-  document.getElementById("navSR").classList.toggle("active",p==="opps");
-  document.getElementById("navRL").classList.toggle("active",p==="rl");
-  document.getElementById("navConv").classList.toggle("active",p==="conv");
-  document.getElementById("navRehash").classList.toggle("active",p==="rehash");
+  const three=iaOption==="three";
   document.getElementById("crumb").innerHTML=
-    p==="rehash"?'Agents &amp; Tools / <b>Estimate Rehashing</b>'
-    :p==="opps"?`<b>${iaOption==="one"?"Opportunities":"Service Requests"}</b>`
-    :p==="rl"?'<b>Rehashed Leads</b>'
-    :'<b>Conversations</b>';
+    p==="rehash"?(three?'Estimates Rehashing / Settings / <b>Rehashing Agent</b>':'Agents &amp; Tools / <b>Estimate Rehashing</b>')
+    :p==="opps"?`<b>${three?"Needs attention":iaOption==="one"?"Opportunities":"Service Requests"}</b>`
+    :p==="rl"?(three?'Estimates Rehashing / <b>Conversations</b>':'<b>Rehashed Leads</b>')
+    :(three?'Lead Capture / <b>Conversations</b>':'<b>Conversations</b>');
   if(p==="opps")renderOppsPage();
   if(p==="rl")renderRLPage();
   if(p==="conv")renderConvPage();
   if(p==="rehash")renderRehashPage();
+  renderNav();
   closeAllDrawers();
 }
 function setIA(opt){
   iaOption=opt;oppTab="attention";oppStatusTab="attention";rlTab="attention";
-  document.getElementById("iaBtnOne").className="btn btn-sm "+(opt==="one"?"btn-primary":"btn-outline");
-  document.getElementById("iaBtnTwo").className="btn btn-sm "+(opt==="two"?"btn-primary":"btn-outline");
-  document.getElementById("navSRLabel").textContent=opt==="one"?"Opportunities":"Service Requests";
-  document.getElementById("navRL").hidden=(opt==="one"); /* shown in B only */
-  convTab="all";convCampFilter="all";
+  [["One","one"],["Two","two"],["Three","three"]].forEach(([k,v])=>{const b=document.getElementById("iaBtn"+k);if(b)b.className="btn btn-sm "+(opt===v?"btn-primary":"btn-outline");});
+  convTab=opt==="three"?"attention":"all";convCampFilter="all";
   if(opt==="one"&&curPage==="rl")curPage="opps";
   showPage(curPage);
 }
