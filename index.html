@@ -75,6 +75,8 @@
   .badge-green{background:var(--green-bg);color:var(--green-fg);border-color:var(--green-bd)}
   .badge-amber{background:var(--amber-bg);color:var(--amber-fg);border-color:var(--amber-bd)}
   .badge-red{background:var(--red-bg);color:var(--red-fg);border-color:var(--red-bd)}
+  .badge-src-lead{background:#E6FFFB;color:#08979C;border-color:#87E8DE}
+  .badge-src-rehash{background:#F9F0FF;color:#531DAB;border-color:#D3ADF7}
   .dot{width:6px;height:6px;border-radius:99px;background:currentColor}
 
   /* ===== Pill tabs (rehash section) ===== */
@@ -144,6 +146,25 @@
   tbody tr.rowbtn:hover{background:var(--muted-30)}
   .t-num{font-variant-numeric:tabular-nums}
   .sum-cell{font-size:12.5px;color:var(--text-2);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  /* Kanban view (Option C — Needs attention) */
+  .kanban{display:flex;gap:12px;overflow-x:auto;padding-bottom:6px;margin-top:2px}
+  .kan-col{flex:1;min-width:225px;min-height:120px;background:var(--muted-30);border:1px solid var(--border);border-radius:12px;padding:10px 10px 4px}
+  .kan-col.dragover{border-color:var(--brand);background:var(--brand-tint)}
+  .kan-card{cursor:grab}
+  .kan-card:active{cursor:grabbing}
+  /* Collapsible reference block (quiet by default) */
+  .fold{border:1px solid var(--border);border-radius:10px;background:var(--muted-30)}
+  .fold summary{cursor:pointer;padding:11px 14px;font-size:13px;font-weight:600;color:var(--text-2);list-style:none;display:flex;align-items:center;gap:8px}
+  .fold summary::-webkit-details-marker{display:none}
+  .fold summary::before{content:"▸";font-size:10px;color:var(--text-3);transition:transform .15s}
+  .fold[open] summary::before{transform:rotate(90deg)}
+  .kan-col-h{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:2px}
+  .kan-col-h .cnt{margin-left:auto;font-size:11.5px;color:var(--text-3);font-variant-numeric:tabular-nums}
+  .kan-card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:11px 12px;margin-bottom:8px;box-shadow:var(--shadow-sm);cursor:pointer}
+  .kan-card:hover{border-color:var(--border-2)}
+  .kan-card .kc-name{font-weight:600;font-size:13.5px}
+  .kan-card .kc-meta{font-size:12px;color:var(--text-2);margin-top:2px}
+  .kan-card .kc-sum{font-size:12px;color:var(--text-3);margin-top:6px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .t-name{font-weight:500}
   .t-muted{color:var(--text-3);font-size:12px}
   .empty{padding:30px;text-align:center;color:var(--text-3);font-size:13px}
@@ -418,31 +439,35 @@
       </div>
       <div id="wstep2" hidden>
         <div class="field">
-          <label>The opening push <span class="t-muted" style="font-weight:400">— how many texts, over how many days</span></label>
-          <div class="hint" style="margin-top:0;margin-bottom:9px">The first stretch does the heavy lifting. It front-loads — a couple of quick touches, then spaces out across the window.</div>
+          <label>How often should the assistant text?</label>
           <label class="radio-card sel"><input type="radio" name="cad" value="standard" checked><span><b>Standard — 5 texts over 8 days <span class="reco-pill">Recommended</span></b><span>Two quick touches, then every other day. Best reply rates.</span></span></label>
           <label class="radio-card"><input type="radio" name="cad" value="gentle"><span><b>Gentle — 3 texts over 7 days</b><span>A lighter touch for customers you don't want to nudge hard.</span></span></label>
-          <label class="radio-card"><input type="radio" name="cad" value="custom"><span><b>Custom — set your own pace</b><span>Choose the number of texts and the window they go out over.</span>
+          <label class="radio-card"><input type="radio" name="cad" value="custom"><span><b>Custom — set your own pace</b>
             <span class="customrhythm" id="customRhythm" style="display:none">
               <select id="cTouches" onchange="renderCadence()"><option>2</option><option>3</option><option>4</option><option selected>5</option><option>6</option><option>7</option></select> texts over
               <select id="cDays" onchange="renderCadence()"><option>7</option><option selected>10</option><option>14</option><option>21</option><option>30</option></select> days
             </span></span></label>
-          <div class="switchrow" style="padding:8px 0 0"><button class="switch on" id="wkndSwitch" onclick="this.classList.toggle('on');renderCadence()" role="switch" aria-checked="true" aria-label="Send on weekends"></button>Send on weekends</div>
+          <div id="autoTuneBox" class="hint" style="margin-top:8px">The recommended rhythm improves as we learn what earns replies. Your campaign follows it automatically — we'll let you know when it changes.</div>
         </div>
-        <div class="field">
-          <label>Then keep following up on a longer rhythm</label>
-          <div class="hint" style="margin-top:0;margin-bottom:9px">After the first push, the assistant spaces out instead of stopping — and only ever stops when they reply or say "stop."</div>
-          <div class="switchrow" style="padding:4px 0"><button class="switch on" id="weeklySwitch" onclick="this.classList.toggle('on');renderCadence()" role="switch" aria-checked="true" aria-label="Weekly follow-up for 4 weeks"></button>Every week, for 4 weeks</div>
-          <div class="switchrow" style="padding:4px 0"><button class="switch on" id="monthlySwitch" onclick="this.classList.toggle('on');renderCadence()" role="switch" aria-checked="true" aria-label="Monthly follow-up for 3 months"></button>Then every month, for 3 months</div>
-        </div>
-        <div class="field">
+        <div class="field" style="margin-top:22px">
           <label>When each estimate gets its texts</label>
           <div id="cadViz"></div>
-          <div class="hint" style="margin-top:8px">Days are counted from when <b>each</b> estimate enters the campaign — not calendar dates — because new estimates keep joining. The first push front-loads (a couple of quick touches, then spreads across the window you set); the weekly and monthly phases keep the lead warm over the long tail.</div>
+          <div style="display:flex;gap:14px 36px;flex-wrap:wrap;align-items:flex-end;margin-top:10px">
+            <div style="flex:1;min-width:320px">
+              <div style="font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3);margin-bottom:5px">If they still haven't replied after the first push</div>
+              <select id="tailSelect" onchange="renderCadence()" style="width:100%;font-size:13px;border:1px solid var(--border-2);border-radius:8px;padding:8px 10px;background:#fff">
+                <option value="full">Keep trying — weekly for 4 weeks, then monthly for 3 months</option>
+                <option value="weekly">Keep trying weekly for 4 weeks, then stop</option>
+                <option value="none">Stop — the first push is enough</option>
+              </select>
+            </div>
+            <div class="switchrow" style="padding:0 0 7px"><button class="switch on" id="wkndSwitch" onclick="this.classList.toggle('on');renderCadence()" role="switch" aria-checked="true" aria-label="Send texts on weekends"></button>Send texts on weekends</div>
+          </div>
+          <div class="hint" style="margin-top:6px">Days count from when each estimate joins the campaign — not calendar dates. Texting stops the moment they reply.</div>
         </div>
-        <div class="field" style="margin-top:4px">
-          <label>When the follow-up stops for a customer <span class="t-muted" style="font-weight:400">(automatic)</span></label>
-          <div class="sumbox" style="display:flex;flex-direction:column;gap:7px">
+        <details class="fold" style="margin-top:18px">
+          <summary>When does the follow-up stop for a customer?</summary>
+          <div style="display:flex;flex-direction:column;gap:7px;padding:2px 14px 12px">
             <div class="lockrow" style="color:var(--text-2);padding:0">✓ It hands them off as a warm lead</div>
             <div class="lockrow" style="color:var(--text-2);padding:0">✓ The estimate is marked sold or lost</div>
             <div class="lockrow" style="color:var(--text-2);padding:0">✓ They decline — the assistant asks why (1 price · 2 competitor · 3 timing · 4 changed their mind) and stops</div>
@@ -450,7 +475,7 @@
             <div class="lockrow" style="color:var(--text-2);padding:0">✓ You exclude them from rehashing</div>
             <div class="lockrow" style="color:var(--text-2);padding:0">✓ All follow-ups have been sent</div>
           </div>
-        </div>
+        </details>
       </div>
       <div id="wstep3" hidden>
         <div class="field">
@@ -625,7 +650,7 @@ const TONES=[["friendly","Friendly & casual"],["professional","Warm & profession
 function defaultTopics(){return Object.fromEntries(TOPICS.map(t=>[t.id,t.def]))}
 /* Merged model: each campaign owns its audience (filters) directly — no separate Segments object. */
 let campaigns=[
- {id:1,name:"Residential rehash",filters:{mode:"all",include:[R("status","is","Open"),R("created","more than","30"),R("cust","is","Residential")],exclude:[R("tag","is","no-AI")]},status:"active",rhythm:"5 texts over 8 days · weekly ×4 · monthly ×3",pushTexts:5,pushDays:8,topics:{financing:true,priceIncrease:true,warranty:true,scheduling:true,seasonal:false,maintenance:false},tone:"professional",rules:["If it's been over 45 days, offer to send someone back out to re-check the job before re-quoting.","Mention our heat-load calculation — proper sizing is why we're worth it."],optionPref:"ask",followWeekly:true,followMonthly:true,stats:{cad:24,rep:17,hand:8}},
+ {id:1,name:"Residential rehash",filters:{mode:"all",include:[R("status","is","Open"),R("created","more than","30"),R("cust","is","Residential")],exclude:[R("tag","is","no-AI")]},status:"active",rhythm:"5 texts over 8 days · weekly ×4 · monthly ×3",pushTexts:5,pushDays:8,autoTune:true,topics:{financing:true,priceIncrease:true,warranty:true,scheduling:true,seasonal:false,maintenance:false},tone:"professional",rules:["If it's been over 45 days, offer to send someone back out to re-check the job before re-quoting.","Mention our heat-load calculation — proper sizing is why we're worth it."],optionPref:"ask",followWeekly:true,followMonthly:true,stats:{cad:24,rep:17,hand:8}},
  {id:2,name:"Commercial follow-up",filters:{mode:"all",include:[R("status","is","Open"),R("created","more than","14"),R("cust","is","Commercial")],exclude:[R("tag","is","no-AI")]},status:"paused",rhythm:"3 texts over 7 days · weekly ×4",pushTexts:3,pushDays:7,topics:{financing:false,priceIncrease:true,warranty:true,scheduling:true,seasonal:false,maintenance:false},tone:"professional",rules:[],optionPref:"ask",followWeekly:true,followMonthly:false,stats:{cad:6,rep:4,hand:2}},
  {id:3,name:"Dormant winter revival",filters:{mode:"all",include:[R("status","is","Open"),R("created","more than","180")],exclude:[R("tag","is","no-AI")]},status:"draft",rhythm:"3 texts over 14 days · weekly ×4 · monthly ×3",pushTexts:3,pushDays:14,topics:{financing:true,priceIncrease:true,warranty:false,scheduling:true,seasonal:true,maintenance:false},tone:"professional",rules:[],optionPref:"ask",followWeekly:true,followMonthly:true,stats:{cad:0,rep:0,hand:0},blocked:"Dormant contacts need a consent record, a purchase in the last 18 months, or a Do-Not-Call check. 41 of 63 qualify so far."}
 ];
@@ -768,7 +793,7 @@ function rosterOutcome(r){
 /* ================= Service requests (production-shaped, lead capture) ================= */
 const SRSTATUS={needs_info:["Needs Info","badge-amber"],ready:["Ready to Schedule","badge-blue"],scheduled:["Scheduled","badge-blue"],completed:["Completed","badge-green"],canceled:["Canceled","badge-red"]};
 const srRows=[
- {ref:"#SR-2214",name:"Robert Casey",phone:"(512) 555-0193",job:"AC Repair",status:"needs_info",channel:"Missed-call SMS",lead:"Google Ads",created:"Today 11:42 AM",wait:"18m",summary:"Missed call — AC isn't cooling. Needs service address and a preferred time before it can be booked."},
+ {ref:"#SR-2214",name:"Robert Casey",phone:"(512) 555-0193",job:"AC Repair",status:"needs_info",channel:"Voice agent",lead:"Google Ads",created:"Today 11:42 AM",wait:"18m",summary:"Missed call to the voice agent — AC isn't cooling. Needs service address and a preferred time before it can be booked."},
  {ref:"#SR-2213",name:"Karen Boyle",phone:"(512) 555-0186",job:"AC Repair",status:"ready",channel:"Voice agent",lead:"Google Business",created:"Today 11:25 AM",wait:"35m",summary:"AC blowing warm air; wants the soonest available visit. All details captured — ready to schedule."},
  {ref:"#SR-2212",name:"Luis Herrera",phone:"(512) 555-0171",job:"Duct Cleaning",status:"needs_info",channel:"Chatbot",lead:"Website",created:"Today 10:50 AM",wait:"1h 10m",summary:"Asked about duct-cleaning pricing over chat. Needs home size and system count to quote."},
  {ref:"#SR-2211",name:"Emily Tran",phone:"(512) 555-0164",job:"Furnace Tune-up",status:"scheduled",channel:"Booking form",lead:"Website",created:"Today 10:00 AM",wait:"2h",summary:"Booked a seasonal furnace tune-up through the online form for this Friday AM."},
@@ -796,17 +821,21 @@ const OUTCOMES={
  no_answer:["No Answer","badge-gray"]
 };
 function bdg(map,key){const p=map[key]||["—","badge-gray"];return `<span class="badge ${p[1]}"${p[2]?' style="border-style:dashed"':""}>${p[0]}</span>`}
+/* Source badge: lead-capture sources (Voice agent / Chatbot / Booking form) share one color; Rehash SMS another. */
+function srcBadge(src){return `<span class="badge ${src==="Rehash SMS"?"badge-src-rehash":"badge-src-lead"}">${src}</span>`}
 const leadConvs=[
  {ref:"#C-8841",name:"Karen Boyle",channel:"Voice",intent:"service_request",outcome:"transferred",created:"Today 11:20 AM",last:"35m ago"},
  {ref:"#C-8840",name:"Luis Herrera",channel:"Chat",intent:"service_request",outcome:"in_progress",created:"Today 10:45 AM",last:"1h 10m ago"},
- {ref:"#C-8836",name:"Nina Alvarado",channel:"Chat",intent:"customer_support",outcome:"completed",created:"Yesterday 4:12 PM",last:"Yesterday"},
+ {ref:"#C-8836",name:"Nina Alvarado",channel:"Chat",intent:"customer_support",outcome:"completed",csStatus:"completed",summary:"Asked for a copy of her invoice from last month's tune-up — sent, all set.",created:"Yesterday 4:12 PM",last:"Yesterday"},
+ {ref:"#C-8827",name:"Gloria Simmons",channel:"Voice",intent:"customer_support",outcome:"in_progress",csStatus:"pending",summary:"Warranty question on the unit installed in March — waiting on the paperwork lookup.",created:"Today 9:15 AM",last:"2h ago"},
+ {ref:"#C-8825",name:"Ted Barrow",channel:"Chat",intent:"customer_support",outcome:"transferred",csStatus:"escalated",summary:"Billing dispute on the duct-cleaning charge — escalated to the office manager.",created:"Mon 1:12 PM",last:"Mon"},
  {ref:"#C-8833",name:"(512) 555-0007",channel:"Voice",intent:"pending",outcome:"abandoned_early",created:"Yesterday 9:03 AM",last:"Yesterday"},
  {ref:"#C-8829",name:"Unknown caller",channel:"Voice",intent:"spam",outcome:"completed",created:"Mon 2:40 PM",last:"Mon"}
 ];
 
 /* ================= Global state ================= */
 let iaOption="one", curPage="rehash", curTab="overview";
-let oppTab="attention", oppStatusTab="attention", rlTab="attention", rlCampFilter="all", convTab="all", convCampFilter="all";
+let oppTab="attention", oppStatusTab="attention", oppView="table", convView="table", rlTab="attention", rlCampFilter="all", convTab="all", convCampFilter="all";
 let convFilters={
  intents:{service_request:true,customer_support:true,spam:true,other:true,pending:true,rehash:true},
  channels:{Voice:true,Chat:true,SMS:true},
@@ -1027,7 +1056,7 @@ function openCampDrawer(id){
      <p class="hint">Built into the campaign — no separate segment to keep in sync. Estimates leave the moment they stop matching (e.g. when marked sold).</p>
      <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="closeAllDrawers();showClientsFor(${c.id})">See who's being rehashed →</button></div>
    <div class="dsec"><h4>Follow-up rhythm</h4>
-     <dl class="dl"><dt>First push</dt><dd>${c.pushTexts||5} texts over ${c.pushDays||8} days — front-loaded, business hours only</dd><dt>Then</dt><dd>${[c.followWeekly!==false?"every week for 4 weeks":null,c.followMonthly!==false?"every month for 3 months":null].filter(Boolean).join(", then ")||"stops after the first push"} — until they reply or say "stop"</dd></dl></div>
+     <dl class="dl"><dt>First push</dt><dd>${c.pushTexts||5} texts over ${c.pushDays||8} days — front-loaded, business hours only</dd><dt>Then</dt><dd>${[c.followWeekly!==false?"every week for 4 weeks":null,c.followMonthly!==false?"every month for 3 months":null].filter(Boolean).join(", then ")||"stops after the first push"} — until they reply or say "stop"</dd>${c.autoTune?`<dt>Rhythm updates</dt><dd>Follows the recommendation as it improves — you'll be notified when it changes</dd>`:""}</dl></div>
    <div class="dsec"><h4>What the assistant can bring up</h4>
      <div style="display:flex;flex-direction:column;gap:5px;font-size:13px">
        ${TOPICS.filter(t=>c.topics&&c.topics[t.id]).map(t=>`<div>✓ ${t.label}</div>`).join("")||'<div class="t-muted">Just answers questions — no extra topics</div>'}
@@ -1090,7 +1119,7 @@ function openLeadDrawer(name){
   document.getElementById("dRef").textContent=(r?r.ref:(conv?conv.ref:"#—"));
   document.getElementById("dName").textContent=name;
   document.getElementById("dBadges").innerHTML=
-    `<span class="badge badge-outline">SMS</span><span class="badge badge-blue">Rehash</span>${st?`<span class="badge ${st.badge}">${r.stage==="hot"||r.stage==="interested"?'<span class="dot"></span>':""}${st.label}</span>`:""}`;
+    `<span class="badge badge-outline">SMS</span><span class="badge badge-blue">Rehash</span>${st?`<span class="badge ${st.badge}">${st.label}</span>`:""}`;
   const phone=conv?conv.phone:(e?e.phone:"—");
   document.getElementById("dBody").innerHTML=`
    <div class="dsec"><h4>Contact details</h4>
@@ -1119,12 +1148,54 @@ function setOppSource(k){
   oppStatusTab=k==="rehash"?"attention":k==="lead"?"attention":"all";
   renderOppsPage();
 }
+function setOppView(v){oppView=v;renderOppsPage();}
+function setConvView(v){convView=v;renderConvPage();}
+
+/* ===== Kanban: shared board builder + drag-and-drop ===== */
+let dragRef=null,dragKind=null;
+function kanDragStart(e,ref,kind){dragRef=ref;dragKind=kind;e.dataTransfer.effectAllowed="move";}
+function kanDragOver(e){e.preventDefault();e.currentTarget.classList.add("dragover");}
+function kanDragLeave(e){e.currentTarget.classList.remove("dragover");}
+function kanDrop(e,colKey,kind){
+  e.preventDefault();e.currentTarget.classList.remove("dragover");
+  if(!dragRef||dragKind!==kind)return;
+  if(kind==="sr"){
+    const r=srRows.find(x=>x.ref===dragRef);
+    if(r&&r.status!==colKey){r.status=colKey;toast(`${r.name} moved to ${SRSTATUS[colKey][0]}`);}
+  }else if(kind==="rehash"){
+    const r=roster.find(x=>x.ref===dragRef);
+    if(r&&r.stage!==colKey){
+      r.stage=colKey;
+      if(colKey==="sold"){const est=estimates.find(x=>x.name===r.name);if(est)est.status="sold";r.next="Marked sold — assistant stopped";}
+      toast(`${r.name} moved to ${STAGES[colKey].label}`);
+    }
+  }else if(kind==="cs"){
+    const c=leadConvs.find(x=>x.ref===dragRef);
+    if(c&&c.csStatus!==colKey){c.csStatus=colKey;toast(`${c.name} moved to ${colKey.charAt(0).toUpperCase()+colKey.slice(1)}`);}
+  }
+  dragRef=null;dragKind=null;
+  if(curPage==="opps")renderOppsPage();else if(curPage==="conv")renderConvPage();
+}
+/* cols: [key,label,badgeClass][] · cards: {ref,col,click,body}[] — every column renders (drop target even when empty) */
+function kanBoard(cols,cards,kind){
+  return `<div class="kanban">${cols.map(([k,label,bcls])=>{
+    const cc=cards.filter(c=>c.col===k);
+    return `<div class="kan-col" ondragover="kanDragOver(event)" ondragleave="kanDragLeave(event)" ondrop="kanDrop(event,'${k}','${kind}')">
+      <div class="kan-col-h"><span class="badge ${bcls}">${label}</span><span class="cnt">${cc.length}</span></div>
+      ${cc.map(c=>`<div class="kan-card" draggable="true" ondragstart="kanDragStart(event,'${c.ref}','${kind}')" onclick="${c.click||""}">${c.body}</div>`).join("")}
+    </div>`}).join("")}</div>`;
+}
+const kanCardBody=o=>`<div class="kc-name">${o.name}</div><div class="kc-meta">${o.job}${o.value?" · "+o.value:""}</div>${o.summary?`<div class="kc-sum">${o.summary}</div>`:""}<div style="margin-top:8px">${srcBadge(o.src)}</div>`;
+const SR_KAN_COLS=[["needs_info","Needs Info","badge-amber"],["ready","Ready to Schedule","badge-blue"],["scheduled","Scheduled","badge-blue"],["completed","Completed","badge-green"],["canceled","Canceled","badge-red"]];
+function srKanban(){
+  return kanBoard(SR_KAN_COLS,srRows.map(s=>({ref:s.ref,col:s.status,click:`toast('Would open the service request drawer — unchanged from production')`,body:kanCardBody({name:s.name,job:s.job,value:null,summary:s.summary,src:s.channel})})),"sr");
+}
 /* Captured-lead / service-request status grouping: needs_info + ready = needs attention */
 const SR_ATTN=s=>s==="needs_info"||s==="ready";
 function srMatch(status,tab){return tab==="all"?true:tab==="attention"?SR_ATTN(status):status===tab}
 /* Shared "what needs you vs informational" banner. kind: 'rehash' | 'captured' */
 function leadAttnBanner(kind,active){
-  if(active==="attention") return `<div class="attn-bar"><b>These need you.</b> ${kind==="rehash"?"The assistant warmed these leads up — call the Hot Leads to close, answer the Interested ones.":"A booking or more info is needed — your team's call."} Every other tab is just the assistant working, shown for visibility.</div>`;
+  if(active==="attention") return "";
   if(active==="all") return `<div class="info-bar">Showing everything — only the <b>Needs attention</b> tab needs you. The rest is informational.</div>`;
   return `<div class="info-bar">Informational — the assistant is handling these. Nothing for you to do here.</div>`;
 }
@@ -1152,7 +1223,7 @@ function renderOppsPage(){
     if(three){
       const capAttn=captured.filter(s=>SR_ATTN(s.status)), rehAttn=rehashAll.filter(o=>o.stage==="hot"||o.stage==="interested");
       rows=oppTab==="lead"?capAttn:oppTab==="rehash"?rehAttn:attnRows;
-      banner=`<div class="attn-bar"><b>These need you.</b> Warm rehashed leads to call — Hot Leads to close, Interested ones to answer — plus captured leads that need a booking or more info.</div>`;
+      banner="";
     }else if(oppTab==="lead"){
       rows=captured.filter(s=>srMatch(s.status,oppStatusTab));
       subHtml=SR_SUB.map(([k,l])=>{
@@ -1169,12 +1240,39 @@ function renderOppsPage(){
       banner=leadAttnBanner("rehash",oppStatusTab);
     }else{
       rows=attnRows;
-      banner=`<div class="attn-bar"><b>These need you.</b> Rehashed leads to call — Hot Leads to close, Interested ones to answer — plus captured leads that need a booking or more info. Everything else is the assistant still working; see the other two tabs.</div>`;
+      banner="";
     }
     const statusCell=o=>{
       if(!o.rehash)return `<span class="badge ${SRSTATUS[o.status][1]}">${SRSTATUS[o.status][0]}</span>`;
       const st=STAGES[o.stage];
-      return `<span class="badge ${st.badge}">${o.stage==="hot"||o.stage==="interested"?'<span class="dot"></span>':""}${st.label}</span>`};
+      return `<span class="badge ${st.badge}">${st.label}</span>`};
+    const rowClick=o=>o.rehash?`openLeadDrawer('${o.name.replace(/'/g,"\\'")}')`:`toast('Would open the service request drawer — unchanged from production')`;
+    const tableHtml=`<div class="tablewrap"><table style="min-width:1200px">
+      <thead><tr><th style="width:86px">Ref</th><th style="width:150px">Contact</th><th style="width:130px">Phone</th><th style="width:130px">Job Type</th><th style="min-width:300px">Summary</th><th style="width:150px">Status</th><th style="width:130px">Source</th><th style="width:90px">Value</th><th style="width:100px">Waiting</th></tr></thead>
+      <tbody>${rows.map(o=>`
+        <tr class="rowbtn" onclick="${rowClick(o)}">
+          <td class="t-num t-muted">${o.ref}</td>
+          <td class="t-name">${o.name}</td>
+          <td class="t-num t-muted">${o.phone}</td>
+          <td class="t-muted">${o.job}</td>
+          <td><div class="sum-cell" title="${(o.summary||"").replace(/"/g,"&quot;")}">${o.summary||'<span class="t-muted">—</span>'}</div></td>
+          <td>${statusCell(o)}</td>
+          <td>${srcBadge(o.src)}</td>
+          <td class="t-num">${o.value||'<span class="t-muted">—</span>'}</td>
+          <td class="t-muted">${o.wait&&o.wait!=="—"?"⏱ "+o.wait:"—"}</td>
+        </tr>`).join("")||'<tr><td colspan="9"><div class="empty">Nobody here right now.</div></td></tr>'}</tbody></table></div>`;
+    /* Kanban only on the filtered source tabs — full pipeline per source, drag a card to change its status. */
+    const showKan=three&&oppTab!=="attention";
+    let kanbanHtml="",kanCount=0;
+    if(showKan){
+      if(oppTab==="lead"){
+        kanbanHtml=srKanban();kanCount=srRows.length;
+      }else{
+        const REHASH_KAN_COLS=[["hot","Hot Lead","badge-green"],["interested","Interested","badge-amber"],["sold","Sold","badge-green"],["declined","Declined","badge-outline"],["stopped","Stopped","badge-outline"]];
+        const cards=roster.filter(r=>["hot","interested","sold","declined","stopped"].includes(r.stage)).map(r=>({ref:r.ref,col:r.stage,click:`openLeadDrawer('${r.name.replace(/'/g,"\\'")}')`,body:kanCardBody({name:r.name,job:r.est,value:r.val,summary:(r.conv&&conversations[r.conv]?conversations[r.conv].summary:r.next),src:"Rehash SMS"})}));
+        kanbanHtml=kanBoard(REHASH_KAN_COLS,cards,"rehash");kanCount=cards.length;
+      }
+    }
     root.innerHTML=`
      <div class="page-h"><div><h1>${three?"Needs attention":"Opportunities"}</h1><p>${three?"Everything that needs a human right now — across every agent. Warm rehashed leads to call, plus captured leads that need a booking or more info.":"Every chance to win a job, from every agent. <b>Needs attention</b> is what to work now — the rest is the assistant running."}</p></div></div>
      <nav class="utabs" role="tablist">${(three?[["attention","All",attnRows.length],["lead","Captured Leads",captured.filter(s=>SR_ATTN(s.status)).length],["rehash","Rehashed Leads",rehashAll.filter(o=>o.stage==="hot"||o.stage==="interested").length]]:srcTabs).map(([k,l,n])=>`<button class="utab ${(k==="attention"&&!three)?"attn ":""}${oppTab===k?"active":""}" role="tab" onclick="setOppSource('${k}')">${l}<span class="cnt">${n}</span></button>`).join("")}</nav>
@@ -1183,24 +1281,12 @@ function renderOppsPage(){
      <div class="toolbar">
        <div class="searchbox"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
          <input placeholder="Search opportunities..." aria-label="Search" oninput="toast('Search is decorative in this prototype')"></div>
+       ${showKan?`<div class="segmented" role="group" aria-label="View"><button class="${oppView==="table"?"on":""}" onclick="setOppView('table')">Table</button><button class="${oppView==="kanban"?"on":""}" onclick="setOppView('kanban')">Kanban</button></div>`:""}
        <button class="btn btn-outline btn-sm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>Filter</button>
        <button class="btn btn-outline btn-sm" onclick="toast('Would export CSV')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export</button>
      </div>
-     <div class="tablewrap"><table style="min-width:1200px">
-      <thead><tr><th style="width:86px">Ref</th><th style="width:150px">Contact</th><th style="width:130px">Phone</th><th style="width:130px">Job Type</th><th style="min-width:300px">Summary</th><th style="width:150px">Status</th><th style="width:130px">Source</th><th style="width:90px">Value</th><th style="width:100px">Waiting</th></tr></thead>
-      <tbody>${rows.map(o=>`
-        <tr class="rowbtn" onclick="${o.rehash?`openLeadDrawer('${o.name.replace(/'/g,"\\'")}')`:`toast('Would open the service request drawer — unchanged from production')`}">
-          <td class="t-num t-muted">${o.ref}</td>
-          <td class="t-name">${o.name}</td>
-          <td class="t-num t-muted">${o.phone}</td>
-          <td class="t-muted">${o.job}</td>
-          <td><div class="sum-cell" title="${(o.summary||"").replace(/"/g,"&quot;")}">${o.summary||'<span class="t-muted">—</span>'}</div></td>
-          <td>${statusCell(o)}</td>
-          <td><span class="badge badge-outline">${o.src}</span></td>
-          <td class="t-num">${o.value||'<span class="t-muted">—</span>'}</td>
-          <td class="t-muted">${o.wait&&o.wait!=="—"?"⏱ "+o.wait:"—"}</td>
-        </tr>`).join("")||'<tr><td colspan="9"><div class="empty">Nobody here right now.</div></td></tr>'}</tbody></table></div>
-     <div class="pagefoot">${three?`Showing ${rows.length} · the cross-agent priority queue. Each agent's full pipeline lives in its own section.`:`Showing ${rows.length} of ${captured.length+rehashAll.length} · every agent — today's and future ones — feeds this same queue.`}</div>`;
+     ${(showKan&&oppView==="kanban")?kanbanHtml:tableHtml}
+     <div class="pagefoot">${(showKan&&oppView==="kanban")?`${kanCount} across the pipeline · drag a card to change its status${oppTab==="rehash"?" · In-queue leads are the assistant's — not shown here":""}`:three?`Showing ${rows.length} · the cross-agent priority queue. Each agent's full pipeline lives in its own section.`:`Showing ${rows.length} of ${captured.length+rehashAll.length} · every agent — today's and future ones — feeds this same queue.`}</div>`;
   }else{
     if(!["attention","scheduled","completed","canceled"].includes(oppStatusTab))oppStatusTab="attention";
     const tabs=[["attention","Needs attention"],["scheduled","Scheduled"],["completed","Completed"],["canceled","Canceled"]];
@@ -1221,7 +1307,7 @@ function renderOppsPage(){
           <td class="t-muted">${s.job}</td>
           <td><div class="sum-cell" title="${(s.summary||"").replace(/"/g,"&quot;")}">${s.summary||'<span class="t-muted">—</span>'}</div></td>
           <td><span class="badge ${SRSTATUS[s.status][1]}">${SRSTATUS[s.status][0]}</span></td>
-          <td><span class="badge badge-outline">${s.channel}</span></td>
+          <td>${srcBadge(s.channel)}</td>
           <td class="t-muted">${s.lead}</td>
           <td class="t-muted">${s.created}</td>
         </tr>`).join("")||'<tr><td colspan="9"><div class="empty">No requests with this status.</div></td></tr>'}</tbody></table></div>
@@ -1303,12 +1389,24 @@ function renderConvPage(){
     +(convCampFilter!=="all"?1:0);
   const intentKeys=Object.keys(INTENTS).filter(k=>one||k!=="rehash");
   const outcomeKeys=Object.keys(OUTCOMES).filter(k=>k!=="no_answer"&&(one||(k!=="stopped")));
+  /* Option C: the Service Request and Customer Support intent tabs get a Kanban view */
+  const showKanConv=three&&(convTab==="service_request"||convTab==="customer_support");
+  let convKanban="",convKanCount=0;
+  if(showKanConv&&convView==="kanban"){
+    if(convTab==="service_request"){convKanban=srKanban();convKanCount=srRows.length;}
+    else{
+      const CS_COLS=[["pending","Pending","badge-amber"],["completed","Completed","badge-green"],["escalated","Escalated","badge-red"]];
+      const cards=leadConvs.filter(c=>c.intent==="customer_support").map(c=>({ref:c.ref,col:c.csStatus||"pending",click:`toast('Would open the conversation drawer — unchanged from production')`,body:kanCardBody({name:c.name,job:c.channel+" · "+c.created,value:null,summary:c.summary,src:c.channel==="Voice"?"Voice agent":"Chatbot"})}));
+      convKanban=kanBoard(CS_COLS,cards,"cs");convKanCount=cards.length;
+    }
+  }
   root.innerHTML=`
    <div class="page-h"><div><h1>Conversations</h1><p>${one?"Review conversations across your AI agents — including estimate rehash.":iaOption==="three"?"Every lead-capture conversation — voice, chat, and booking form.":"Review conversations across your AI agents."}</p></div></div>
    ${one?`<nav class="utabs" role="tablist">${[["all","All"],["lead","Captured Leads"],["rehash","Rehashed Leads"]].map(([k,l])=>`<button class="utab ${convTab===k?"active":""}" role="tab" onclick="convTab='${k}';renderConvPage()">${l}<span class="cnt">${tabCounts[k]}</span></button>`).join("")}</nav>`:three?`<nav class="utabs" role="tablist">${cIntentTabs.map(([k,l])=>`<button class="utab ${k==="attention"?"attn ":""}${convTab===k?"active":""}" role="tab" onclick="convTab='${k}';renderConvPage()">${l}<span class="cnt">${all.filter(c=>passes(c)&&cMatch(c,k)).length}</span></button>`).join("")}</nav>`:""}
    <div class="toolbar" style="margin-top:${one||three?"14px":"18px"}">
      <div class="searchbox"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
        <input placeholder="Search conversations..." aria-label="Search conversations" oninput="toast('Search is decorative in this prototype')"></div>
+     ${showKanConv?`<div class="segmented" role="group" aria-label="View"><button class="${convView==="table"?"on":""}" onclick="setConvView('table')">Table</button><button class="${convView==="kanban"?"on":""}" onclick="setConvView('kanban')">Kanban</button></div>`:""}
      <button class="btn btn-outline btn-sm" onclick="toast('Would open the date range picker — unchanged from production')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Date range</button>
      <div class="pop">
        <button class="btn btn-outline btn-sm" onclick="document.getElementById('convPop').classList.toggle('open');event.stopPropagation()">
@@ -1332,7 +1430,7 @@ function renderConvPage(){
      </div>
      <button class="btn btn-outline btn-sm" onclick="toast('Would export CSV')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export</button>
    </div>
-   <div class="tablewrap"><table>
+   ${(showKanConv&&convView==="kanban")?convKanban:`<div class="tablewrap"><table>
     <thead><tr><th style="width:86px">Ref</th><th>Contact</th><th style="width:90px">Channel</th><th style="width:150px">Intent</th><th style="width:140px">Outcome</th><th style="width:120px">Created</th><th style="width:110px">Last Activity</th></tr></thead>
     <tbody>${visible.map(c=>`
       <tr class="rowbtn" onclick="${c.rehash?`openLeadDrawer('${c.name.replace(/'/g,"\\'")}')`:`toast('Would open the conversation drawer — unchanged from production')`}">
@@ -1343,8 +1441,8 @@ function renderConvPage(){
         <td>${bdg(OUTCOMES,c.outcome)}</td>
         <td class="t-muted">${c.created}</td>
         <td class="t-muted">${c.last}</td>
-      </tr>`).join("")||'<tr><td colspan="7"><div class="empty">Nothing matches these filters.</div></td></tr>'}</tbody></table></div>
-   <div class="pagefoot">Showing ${visible.length} of ${all.length}${one&&!convFilters.noAnswer&&hiddenN?` · ${hiddenN} rehash threads with no client reply are hidden by default — include them via Filter`:""}${one?"":" · exactly the production experience — rehash threads live in Rehashed Leads"}</div>`;
+      </tr>`).join("")||'<tr><td colspan="7"><div class="empty">Nothing matches these filters.</div></td></tr>'}</tbody></table></div>`}
+   <div class="pagefoot">${(showKanConv&&convView==="kanban")?`${convKanCount} across the pipeline · drag a card to change its status`:`Showing ${visible.length} of ${all.length}${one&&!convFilters.noAnswer&&hiddenN?` · ${hiddenN} rehash threads with no client reply are hidden by default — include them via Filter`:""}${one?"":" · exactly the production experience — rehash threads live in Rehashed Leads"}`}</div>`;
 }
 
 /* ================= Drawer plumbing ================= */
@@ -1401,10 +1499,10 @@ function openWizard(campId){
   const dayOpts=[...document.querySelectorAll("#cDays option")].map(o=>+o.value);
   document.getElementById("cDays").value=dayOpts.includes(push.days)?push.days:10;
   document.getElementById("customRhythm").style.display=(presetKey==="custom")?"flex":"none";
+  document.getElementById("autoTuneBox").style.display=(presetKey==="standard")?"block":"none";
   document.getElementById("optionPref").value=c?c.optionPref||"first":"ask";
   document.getElementById("wkndSwitch").classList.toggle("on",c?c.weekends!==false:true);
-  document.getElementById("weeklySwitch").classList.toggle("on",c?c.followWeekly!==false:true);
-  document.getElementById("monthlySwitch").classList.toggle("on",c?c.followMonthly!==false:true);
+  document.getElementById("tailSelect").value=c?(c.followWeekly===false?"none":c.followMonthly===false?"weekly":"full"):"full";
   syncWiz();
   openDrawerEl("wizDrawer");
 }
@@ -1428,14 +1526,15 @@ function cadenceOffsets(n,days){
   return out;
 }
 /* Escalating plan: front-loaded burst → optional weekly (×4) → optional monthly (×3). */
-function phaseOn(id){const el=document.getElementById(id);return el?el.classList.contains("on"):true}
+function tailPlan(){const el=document.getElementById("tailSelect");return el?el.value:"full"}
 function cadencePlan(){
   const fp=cadenceFirstPush();
   const burst=cadenceOffsets(fp.texts,fp.days);
   const phases=[{key:"burst",label:"First push",touches:burst.map(d=>({day:d,rel:"Day "+d}))}];
   let last=burst[burst.length-1];
-  if(phaseOn("weeklySwitch")){const t=[];for(let i=1;i<=4;i++){last+=7;t.push({day:last,rel:"Wk "+i})}phases.push({key:"weekly",label:"Weekly · 4 wks",touches:t});}
-  if(phaseOn("monthlySwitch")){const t=[];for(let i=1;i<=3;i++){last+=30;t.push({day:last,rel:"Mo "+i})}phases.push({key:"monthly",label:"Monthly · 3 mo",touches:t});}
+  const tail=tailPlan();
+  if(tail!=="none"){const t=[];for(let i=1;i<=4;i++){last+=7;t.push({day:last,rel:"Wk "+i})}phases.push({key:"weekly",label:"Weekly · 4 wks",touches:t});}
+  if(tail==="full"){const t=[];for(let i=1;i<=3;i++){last+=30;t.push({day:last,rel:"Mo "+i})}phases.push({key:"monthly",label:"Monthly · 3 mo",touches:t});}
   return phases;
 }
 function renderCadence(){
@@ -1461,9 +1560,8 @@ function renderCadence(){
   el.innerHTML=`
     <div style="border:1px solid var(--border);border-radius:12px;background:var(--muted-30);padding:16px 18px 12px;overflow-x:auto">
       <div style="display:flex;align-items:flex-start;width:max-content;min-width:100%">${groups}</div>
-      <div style="display:flex;justify-content:space-between;gap:12px;font-size:11px;color:var(--text-3);border-top:1px dashed var(--border);padding-top:8px;margin-top:12px">
-        <span>⏱ Relative to each estimate's entry day · stops the moment they reply or say "stop"</span>
-        <span style="white-space:nowrap"><b>${total}</b> touches over ~${lastDay} days${wknd?"":" · weekends skipped"}</span>
+      <div style="display:flex;justify-content:flex-end;font-size:11px;color:var(--text-3);border-top:1px dashed var(--border);padding-top:8px;margin-top:12px">
+        <span><b>${total}</b> touches over ~${lastDay} days${wknd?"":" · weekends skipped"}</span>
       </div>
     </div>`;
 }
@@ -1496,7 +1594,8 @@ function wizNext(){
     topics:{...wizTopics},tone:wizTone,rules:wizRules.map(r=>r.trim()).filter(Boolean),
     optionPref:document.getElementById("optionPref").value,weekends:document.getElementById("wkndSwitch").classList.contains("on"),
     pushTexts:fp.texts,pushDays:fp.days,
-    followWeekly:document.getElementById("weeklySwitch").classList.contains("on"),followMonthly:document.getElementById("monthlySwitch").classList.contains("on")};
+    autoTune:(document.querySelector('input[name=cad]:checked')||{}).value==="standard",
+    followWeekly:tailPlan()!=="none",followMonthly:tailPlan()==="full"};
   if(editingCampId){
     Object.assign(campaigns.find(c=>c.id===editingCampId),data);
     closeAllDrawers();refreshAll();showPage("rehash");
@@ -1548,12 +1647,11 @@ function renderNav(){
   const toggle=(key,open)=>`<button class="nav-item" onclick="navToggle('${key}')" aria-expanded="${open}">${niSvg('sliders')}<span>Settings</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:auto;transition:transform .15s;transform:rotate(${open?90:0}deg)"><polyline points="9 18 15 12 9 6"/></svg></button>`;
   let h;
   if(three){
-    const leadOpen=navExpand.leadSettings, rehashOpen=navExpand.rehashSettings||curPage==="rehash";
+    const leadOpen=navExpand.leadSettings;
     h=grp("General")+item("Dashboard","dashboard")+item("Needs attention","attention","opps",{onclick:"navGo('opps','attention')"})
      +grp("Lead Capture")+item("Conversations","conv","conv")+toggle("leadSettings",leadOpen)
        +(leadOpen?item("Voice Agent","voice",null,{sub:true})+item("Chatbot","chatbot",null,{sub:true})+item("Booking Form","booking",null,{sub:true}):"")
-     +grp("Estimates Rehashing")+item("Conversations","conv","rl")+toggle("rehashSettings",rehashOpen)
-       +(rehashOpen?item("Rehashing Agent","rehash","rehash",{sub:true,badge:'<span class="nav-new">NEW</span>'}):"")
+     +grp("Estimates Rehashing")+item("Conversations","conv","rl")+item("Campaigns","rehash","rehash",{badge:'<span class="nav-new">NEW</span>'})
      +grp("Company")+item("Settings","settings")+item("Team","team")+item("Job Types","jobtypes");
   }else{
     h=grp("General")+item("Dashboard","dashboard")+item(one?"Opportunities":"Service Requests","opps","opps")+(one?"":item("Rehashed Leads","rehashLeads","rl"))+item("Conversations","conv","conv")+item("Contacts","contacts")
@@ -1570,7 +1668,7 @@ function showPage(p){
   ["rehash","opps","rl","conv"].forEach(x=>document.getElementById("page-"+x).hidden=(x!==p));
   const three=iaOption==="three";
   document.getElementById("crumb").innerHTML=
-    p==="rehash"?(three?'Estimates Rehashing / Settings / <b>Rehashing Agent</b>':'Agents &amp; Tools / <b>Estimate Rehashing</b>')
+    p==="rehash"?(three?'Estimates Rehashing / <b>Campaigns</b>':'Agents &amp; Tools / <b>Estimate Rehashing</b>')
     :p==="opps"?`<b>${three?"Needs attention":iaOption==="one"?"Opportunities":"Service Requests"}</b>`
     :p==="rl"?(three?'Estimates Rehashing / <b>Conversations</b>':'<b>Rehashed Leads</b>')
     :(three?'Lead Capture / <b>Conversations</b>':'<b>Conversations</b>');
@@ -1600,7 +1698,7 @@ function toast(msg){
 document.addEventListener("change",e=>{
   if(e.target.matches('.radio-card input[type=radio]')){
     document.querySelectorAll(`input[name=${e.target.name}]`).forEach(r=>r.closest(".radio-card").classList.toggle("sel",r.checked));
-    if(e.target.name==="cad"){document.getElementById("customRhythm").style.display=(e.target.value==="custom"&&e.target.checked)?"flex":"none";renderCadence()}
+    if(e.target.name==="cad"){document.getElementById("customRhythm").style.display=(e.target.value==="custom"&&e.target.checked)?"flex":"none";document.getElementById("autoTuneBox").style.display=(e.target.value==="standard"&&e.target.checked)?"block":"none";renderCadence()}
   }
 });
 document.addEventListener("click",()=>{const p=document.getElementById("convPop");if(p)p.classList.remove("open")});
