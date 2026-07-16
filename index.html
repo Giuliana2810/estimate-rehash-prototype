@@ -39,6 +39,11 @@
   .nav-item.active{background:var(--brand-tint);color:var(--brand-active)}
   .nav-item .ni{width:18px;height:18px}
   .nav-sub{margin-left:28px;font-size:12px}
+  /* Option C: color-coded nav sections — teal = Lead Capture, purple = Estimates Rehashing (same language as source badges) */
+  .nav-sec{margin:2px 0 8px;padding:0 0 2px 7px;border-left:2px solid var(--sec,var(--border))}
+  .nav-sec .nav-group{display:flex;align-items:center;gap:6px;color:var(--sec-fg,var(--text-3))}
+  .nav-sec .nav-group::before{content:"";width:6px;height:6px;border-radius:99px;background:var(--sec,var(--border-2));flex:none}
+  .nav-sec .nav-item.active{background:var(--sec-tint,var(--brand-tint));color:var(--sec-fg,var(--brand-active))}
   .nav-footer{padding:10px 8px;border-top:1px solid var(--border)}
   .nav-new{font-size:10px;font-weight:600;background:var(--brand);color:#fff;border-radius:99px;padding:1px 7px;margin-left:auto;letter-spacing:.4px}
 
@@ -1174,7 +1179,7 @@ function kanDrop(e,colKey,kind){
     if(c&&c.csStatus!==colKey){c.csStatus=colKey;toast(`${c.name} moved to ${colKey.charAt(0).toUpperCase()+colKey.slice(1)}`);}
   }
   dragRef=null;dragKind=null;
-  if(curPage==="opps")renderOppsPage();else if(curPage==="conv")renderConvPage();
+  if(curPage==="opps")renderOppsPage();else if(curPage==="conv")renderConvPage();else if(curPage==="rl")renderRLPage();
 }
 /* cols: [key,label,badgeClass][] · cards: {ref,col,click,body}[] — every column renders (drop target even when empty) */
 function kanBoard(cols,cards,kind){
@@ -1317,26 +1322,40 @@ function renderOppsPage(){
 
 /* ================= Page: Rehashed Leads (B) ================= */
 const RL_TABS=[["attention","Needs attention"],["cadence","In queue"],["declined","Declined"],["sold","Sold"],["stopped","Stopped"]];
-/* "Needs attention" = Hot Lead + Interested (need a human). "In queue" = assistant still texting. */
-function rlStageMatch(r,tab){if(tab==="attention")return r.stage==="hot"||r.stage==="interested";if(tab==="cadence")return r.stage==="cadence"||r.stage==="queued";return r.stage===tab}
+/* "Needs attention" = Hot Lead + Interested. "Active" = any real conversation (C). "In queue" = assistant still texting. */
+function rlStageMatch(r,tab){if(tab==="attention")return r.stage==="hot"||r.stage==="interested";if(tab==="active")return ["hot","interested","sold","stopped","declined"].includes(r.stage);if(tab==="cadence")return r.stage==="cadence"||r.stage==="queued";return r.stage===tab}
+let rlView="table";
+function setRlView(v){rlView=v;renderRLPage();}
 function renderRLPage(){
   const root=document.getElementById("rlRoot");
-  const counts=Object.fromEntries(RL_TABS.map(([k])=>[k,roster.filter(r=>rlStageMatch(r,k)&&(rlCampFilter==="all"||r.campId===rlCampFilter)).length]));
+  const three=iaOption==="three";
+  /* Option C: two tabs — Active Conversations (real threads, kanban-able) and In queue (assistant still texting). */
+  const TABS=three?[["active","Active Conversations"],["cadence","In queue"]]:RL_TABS;
+  if(three&&!TABS.some(([k])=>k===rlTab))rlTab="active";
+  const counts=Object.fromEntries(TABS.map(([k])=>[k,roster.filter(r=>rlStageMatch(r,k)&&(rlCampFilter==="all"||r.campId===rlCampFilter)).length]));
   const campChips=[`<button class="btn btn-sm ${rlCampFilter==="all"?"btn-primary":"btn-outline"}" onclick="rlCampFilter='all';renderRLPage()">All campaigns</button>`]
    .concat(campaigns.filter(c=>roster.some(r=>r.campId===c.id)).map(c=>
     `<button class="btn btn-sm ${rlCampFilter===c.id?"btn-primary":"btn-outline"}" onclick="rlCampFilter=${c.id};renderRLPage()">${c.name}</button>`)).join("");
   const rows=roster.filter(r=>rlStageMatch(r,rlTab)&&(rlCampFilter==="all"||r.campId===rlCampFilter));
-  const banner=leadAttnBanner("rehash",rlTab);
+  const banner=three?"":leadAttnBanner("rehash",rlTab);
+  const showToggle=three&&rlTab==="active";
+  let kanbanHtml="";
+  if(showToggle&&rlView==="kanban"){
+    const COLS=[["interested","Interested","badge-amber"],["hot","Hot Lead","badge-green"],["sold","Sold","badge-green"],["stopped","Stopped","badge-outline"],["declined","Declined","badge-outline"]];
+    const cards=rows.map(r=>({ref:r.ref,col:r.stage,click:`openLeadDrawer('${r.name.replace(/'/g,"\\'")}')`,body:kanCardBody({name:r.name,job:r.est,value:r.val,summary:(r.conv&&conversations[r.conv]?conversations[r.conv].summary:r.next),src:"Rehash SMS"})}));
+    kanbanHtml=kanBoard(COLS,cards,"rehash");
+  }
   root.innerHTML=`
-   <div class="page-h"><div><h1>${iaOption==="three"?"Conversations":"Rehashed Leads"}</h1><p>Only <b>Needs attention</b> needs you. Everything else is the assistant working — shown for visibility.</p></div></div>
-   <nav class="utabs" role="tablist">${RL_TABS.map(([k,l])=>`<button class="utab ${k==="attention"?"attn ":""}${rlTab===k?"active":""}" role="tab" onclick="rlTab='${k}';renderRLPage()">${l}<span class="cnt">${counts[k]}</span></button>`).join("")}</nav>
+   <div class="page-h"><div><h1>${three?"Conversations":"Rehashed Leads"}</h1><p>${three?"Every rehash conversation the assistant has had. <b>In queue</b> leads are still being texted — they move here the moment they reply.":"Only <b>Needs attention</b> needs you. Everything else is the assistant working — shown for visibility."}</p></div></div>
+   <nav class="utabs" role="tablist">${TABS.map(([k,l])=>`<button class="utab ${k==="attention"?"attn ":""}${rlTab===k?"active":""}" role="tab" onclick="rlTab='${k}';renderRLPage()">${l}<span class="cnt">${counts[k]}</span></button>`).join("")}</nav>
    ${banner}
    <div class="toolbar">
      <div class="searchbox"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
        <input placeholder="Search rehashed leads..." aria-label="Search" oninput="toast('Search is decorative in this prototype')"></div>
+     ${showToggle?`<div class="segmented" role="group" aria-label="View"><button class="${rlView==="table"?"on":""}" onclick="setRlView('table')">Table</button><button class="${rlView==="kanban"?"on":""}" onclick="setRlView('kanban')">Kanban</button></div>`:""}
      <div style="display:flex;gap:6px;flex-wrap:wrap">${campChips}</div>
    </div>
-   <div class="tablewrap"><table>
+   ${(showToggle&&rlView==="kanban")?kanbanHtml+`<div class="pagefoot">${rows.length} across the pipeline · drag a card to change its status</div>`:`<div class="tablewrap"><table>
     <thead><tr><th style="width:86px">Ref</th><th style="width:150px">Contact</th><th style="width:130px">Phone</th><th>Estimate</th><th style="width:90px">Value</th><th style="width:170px">Campaign</th><th>What's next</th></tr></thead>
     <tbody>${rows.map(r=>{
       const camp=campaigns.find(c=>c.id===r.campId);
@@ -1349,7 +1368,7 @@ function renderRLPage(){
         <td class="t-muted">${camp?camp.name:"—"}</td>
         <td class="t-muted">${r.next}</td>
       </tr>`}).join("")||'<tr><td colspan="7"><div class="empty">Nobody in this stage right now.</div></td></tr>'}</tbody></table></div>
-   <div class="pagefoot">Showing ${rows.length} · click a lead for details and the thread. Threads with replies also appear in Conversations.</div>`;
+   <div class="pagefoot">Showing ${rows.length} · click a lead for details and the thread. Threads with replies also appear in Conversations.</div>`}`;
 }
 
 /* ================= Page: Conversations (latest-main layout: Intent + Outcome; Option A adds the Rehash intent) ================= */
@@ -1374,10 +1393,10 @@ function renderConvPage(){
   const passes=c=>convFilters.intents[c.intent]&&convFilters.channels[c.channel]&&
     (c.outcome==="no_answer"?convFilters.noAnswer:convFilters.outcomes[c.outcome])&&
     (convCampFilter==="all"||(c.rehash&&c.campId===convCampFilter));
-  /* Option C: one tab per conversation intent, led by a "Needs attention" grouping (Service Request + Customer Support). */
-  const cIntentTabs=[["attention","Needs attention"],["all","All"]].concat(Object.keys(INTENTS).filter(k=>k!=="rehash").map(k=>[k,INTENTS[k][0]]));
-  if(three&&!cIntentTabs.some(([k])=>k===convTab))convTab="attention";
-  const cMatch=(c,tab)=>tab==="all"?true:tab==="attention"?(c.intent==="service_request"||c.intent==="customer_support"):c.intent===tab;
+  /* Option C: one tab per conversation intent. */
+  const cIntentTabs=Object.keys(INTENTS).filter(k=>k!=="rehash").map(k=>[k,INTENTS[k][0]]);
+  if(three&&!cIntentTabs.some(([k])=>k===convTab))convTab="service_request";
+  const cMatch=(c,tab)=>c.intent===tab;
   const inTab=three?(c=>cMatch(c,convTab)):(c=>convTab==="all"||(convTab==="lead"?!c.rehash:c.rehash));
   const visible=all.filter(c=>passes(c)&&inTab(c));
   const tabCounts={all:all.filter(passes).length,lead:all.filter(c=>passes(c)&&!c.rehash).length,rehash:all.filter(c=>passes(c)&&c.rehash).length};
@@ -1402,7 +1421,7 @@ function renderConvPage(){
   }
   root.innerHTML=`
    <div class="page-h"><div><h1>Conversations</h1><p>${one?"Review conversations across your AI agents — including estimate rehash.":iaOption==="three"?"Every lead-capture conversation — voice, chat, and booking form.":"Review conversations across your AI agents."}</p></div></div>
-   ${one?`<nav class="utabs" role="tablist">${[["all","All"],["lead","Captured Leads"],["rehash","Rehashed Leads"]].map(([k,l])=>`<button class="utab ${convTab===k?"active":""}" role="tab" onclick="convTab='${k}';renderConvPage()">${l}<span class="cnt">${tabCounts[k]}</span></button>`).join("")}</nav>`:three?`<nav class="utabs" role="tablist">${cIntentTabs.map(([k,l])=>`<button class="utab ${k==="attention"?"attn ":""}${convTab===k?"active":""}" role="tab" onclick="convTab='${k}';renderConvPage()">${l}<span class="cnt">${all.filter(c=>passes(c)&&cMatch(c,k)).length}</span></button>`).join("")}</nav>`:""}
+   ${one?`<nav class="utabs" role="tablist">${[["all","All"],["lead","Captured Leads"],["rehash","Rehashed Leads"]].map(([k,l])=>`<button class="utab ${convTab===k?"active":""}" role="tab" onclick="convTab='${k}';renderConvPage()">${l}<span class="cnt">${tabCounts[k]}</span></button>`).join("")}</nav>`:three?`<nav class="utabs" role="tablist">${cIntentTabs.map(([k,l])=>`<button class="utab ${convTab===k?"active":""}" role="tab" onclick="convTab='${k}';renderConvPage()">${l}<span class="cnt">${all.filter(c=>passes(c)&&cMatch(c,k)).length}</span></button>`).join("")}</nav>`:""}
    <div class="toolbar" style="margin-top:${one||three?"14px":"18px"}">
      <div class="searchbox"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
        <input placeholder="Search conversations..." aria-label="Search conversations" oninput="toast('Search is decorative in this prototype')"></div>
@@ -1648,11 +1667,18 @@ function renderNav(){
   let h;
   if(three){
     const leadOpen=navExpand.leadSettings;
-    h=grp("General")+item("Dashboard","dashboard")+item("Needs attention","attention","opps",{onclick:"navGo('opps','attention')"})
-     +grp("Lead Capture")+item("Conversations","conv","conv")+toggle("leadSettings",leadOpen)
-       +(leadOpen?item("Voice Agent","voice",null,{sub:true})+item("Chatbot","chatbot",null,{sub:true})+item("Booking Form","booking",null,{sub:true}):"")
-     +grp("Estimates Rehashing")+item("Conversations","conv","rl")+item("Campaigns","rehash","rehash",{badge:'<span class="nav-new">NEW</span>'})
-     +grp("Company")+item("Settings","settings")+item("Team","team")+item("Job Types","jobtypes");
+    /* Section colors mirror the source badges: teal = Lead Capture, purple = Estimates Rehashing. Neutral sections stay gray. */
+    const sec=(title,vars,inner)=>`<div class="nav-sec" style="${vars}"><div class="nav-group">${title}</div>${inner}</div>`;
+    const LEAD="--sec:#08979C;--sec-fg:#08979C;--sec-tint:#E6FFFB", REHASH="--sec:#722ED1;--sec-fg:#531DAB;--sec-tint:#F9F0FF", NEUTRAL="";
+    h=sec("General",NEUTRAL,
+        item("Dashboard","dashboard")+item("Needs attention","attention","opps",{onclick:"navGo('opps','attention')"}))
+     +sec("Lead Capture",LEAD,
+        item("Conversations","conv","conv")+toggle("leadSettings",leadOpen)
+        +(leadOpen?item("Voice Agent","voice",null,{sub:true})+item("Chatbot","chatbot",null,{sub:true})+item("Booking Form","booking",null,{sub:true}):""))
+     +sec("Estimates Rehashing",REHASH,
+        item("Conversations","conv","rl")+item("Campaigns","rehash","rehash",{badge:'<span class="nav-new">NEW</span>'}))
+     +sec("Company",NEUTRAL,
+        item("Settings","settings")+item("Team","team")+item("Job Types","jobtypes"));
   }else{
     h=grp("General")+item("Dashboard","dashboard")+item(one?"Opportunities":"Service Requests","opps","opps")+(one?"":item("Rehashed Leads","rehashLeads","rl"))+item("Conversations","conv","conv")+item("Contacts","contacts")
      +grp("Agents &amp; Tools")+item("Voice Agent","voice")+item("Website Chatbot","chatbot")+item("Booking Form","booking")+item("Estimate Rehashing","rehash","rehash",{badge:'<span class="nav-new">NEW</span>'})
@@ -1667,11 +1693,12 @@ function showPage(p){
   curPage=p;
   ["rehash","opps","rl","conv"].forEach(x=>document.getElementById("page-"+x).hidden=(x!==p));
   const three=iaOption==="three";
+  const secCrumb=(name,color)=>`<span style="color:${color};font-weight:600">${name}</span>`;
   document.getElementById("crumb").innerHTML=
-    p==="rehash"?(three?'Estimates Rehashing / <b>Campaigns</b>':'Agents &amp; Tools / <b>Estimate Rehashing</b>')
+    p==="rehash"?(three?secCrumb("Estimates Rehashing","#531DAB")+' / <b>Campaigns</b>':'Agents &amp; Tools / <b>Estimate Rehashing</b>')
     :p==="opps"?`<b>${three?"Needs attention":iaOption==="one"?"Opportunities":"Service Requests"}</b>`
-    :p==="rl"?(three?'Estimates Rehashing / <b>Conversations</b>':'<b>Rehashed Leads</b>')
-    :(three?'Lead Capture / <b>Conversations</b>':'<b>Conversations</b>');
+    :p==="rl"?(three?secCrumb("Estimates Rehashing","#531DAB")+' / <b>Conversations</b>':'<b>Rehashed Leads</b>')
+    :(three?secCrumb("Lead Capture","#08979C")+' / <b>Conversations</b>':'<b>Conversations</b>');
   if(p==="opps")renderOppsPage();
   if(p==="rl")renderRLPage();
   if(p==="conv")renderConvPage();
@@ -1680,9 +1707,9 @@ function showPage(p){
   closeAllDrawers();
 }
 function setIA(opt){
-  iaOption=opt;oppTab="attention";oppStatusTab="attention";rlTab="attention";
+  iaOption=opt;oppTab="attention";oppStatusTab="attention";rlTab=opt==="three"?"active":"attention";
   [["One","one"],["Two","two"],["Three","three"]].forEach(([k,v])=>{const b=document.getElementById("iaBtn"+k);if(b)b.className="btn btn-sm "+(opt===v?"btn-primary":"btn-outline");});
-  convTab=opt==="three"?"attention":"all";convCampFilter="all";
+  convTab=opt==="three"?"service_request":"all";convCampFilter="all";
   if(opt==="one"&&curPage==="rl")curPage="opps";
   showPage(curPage);
 }
