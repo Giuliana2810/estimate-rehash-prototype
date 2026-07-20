@@ -289,12 +289,6 @@
 <div class="proto-note">
   <b>♻️ AI Estimate Rehash — clickable prototype (frontend only, mock data).</b>
   <span>Tenant: Summit Air &amp; Heat.</span>
-  <span style="margin-left:auto;display:flex;gap:6px;align-items:center;flex:none">
-    <span style="font-weight:600;color:#33404f">Compare IA:</span>
-    <button class="btn btn-sm btn-primary" id="iaBtnOne" onclick="setIA('one')">A · One queue</button>
-    <button class="btn btn-sm btn-outline" id="iaBtnTwo" onclick="setIA('two')">B · Two tabs</button>
-    <button class="btn btn-sm btn-outline" id="iaBtnThree" onclick="setIA('three')">C · Sectioned nav</button>
-  </span>
 </div>
 
 <div class="frame" id="frame">
@@ -414,7 +408,7 @@
         </div>
         <div class="field">
           <label>Who does this campaign follow up with?</label>
-          <div class="hint" style="margin-top:0;margin-bottom:9px">Build the audience right here — no separate segments to manage. Estimates join automatically when they match and drop out the moment they don't (e.g. once sold). A customer only ever gets one conversation, even with several open estimates.</div>
+          <div class="hint" style="margin-top:0;margin-bottom:9px">Build the audience right here — no separate segments to manage. A customer only ever gets one conversation, even with several open estimates.</div>
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:9px;font-size:12.5px;color:var(--text-2)">
             Estimates must match
             <div class="segmented" role="group" aria-label="Match mode">
@@ -434,6 +428,11 @@
             <button class="addrule" onclick="addRule('exclude')">+ Add exclusion</button>
             <div class="fixed-exc">Opted-out customers, and anyone you've marked "don't rehash", are always left out — you can't override this.</div>
           </div>
+        </div>
+        <div class="field">
+          <label>Should new estimates keep joining?</label>
+          <label class="radio-card sel"><input type="radio" name="audMode" value="dynamic" checked><span><b>Dynamic — keeps itself up to date <span class="reco-pill">Recommended</span></b><span>New estimates that match these rules join automatically; anyone who stops matching drops out.</span></span></label>
+          <label class="radio-card"><input type="radio" name="audMode" value="static"><span><b>Static — lock in today's list</b><span>Only the people who match right now. New estimates never join this campaign.</span></span></label>
         </div>
         <div class="field">
           <label>Who matches right now</label>
@@ -459,7 +458,7 @@
           <div id="cadViz"></div>
           <div style="display:flex;gap:14px 36px;flex-wrap:wrap;align-items:flex-end;margin-top:10px">
             <div style="flex:1;min-width:320px">
-              <div style="font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3);margin-bottom:5px">If they still haven't replied after the first push</div>
+              <div style="font-size:12.5px;font-weight:600;margin-bottom:6px">If they still haven't replied after the first push</div>
               <select id="tailSelect" onchange="renderCadence()" style="width:100%;font-size:13px;border:1px solid var(--border-2);border-radius:8px;padding:8px 10px;background:#fff">
                 <option value="full">Keep trying — weekly for 4 weeks, then monthly for 3 months</option>
                 <option value="weekly">Keep trying weekly for 4 weeks, then stop</option>
@@ -470,9 +469,9 @@
           </div>
           <div class="hint" style="margin-top:6px">Days count from when each estimate joins the campaign — not calendar dates. Texting stops the moment they reply.</div>
         </div>
-        <details class="fold" style="margin-top:18px">
-          <summary>When does the follow-up stop for a customer?</summary>
-          <div style="display:flex;flex-direction:column;gap:7px;padding:2px 14px 12px">
+        <div class="field" style="margin-top:22px">
+          <label>When does the follow-up stop for a customer?</label>
+          <div style="display:flex;flex-direction:column;gap:7px">
             <div class="lockrow" style="color:var(--text-2);padding:0">✓ It hands them off as a warm lead</div>
             <div class="lockrow" style="color:var(--text-2);padding:0">✓ The estimate is marked sold or lost</div>
             <div class="lockrow" style="color:var(--text-2);padding:0">✓ They decline — the assistant asks why (1 price · 2 competitor · 3 timing · 4 changed their mind) and stops</div>
@@ -480,17 +479,13 @@
             <div class="lockrow" style="color:var(--text-2);padding:0">✓ You exclude them from rehashing</div>
             <div class="lockrow" style="color:var(--text-2);padding:0">✓ All follow-ups have been sent</div>
           </div>
-        </details>
+        </div>
       </div>
       <div id="wstep3" hidden>
         <div class="field">
           <label>Topics the assistant can bring up</label>
           <div id="topicList"></div>
           <div class="hint" style="margin-top:8px">The assistant writes each text itself and always answers questions from the estimate. These are the extra topics it's allowed to raise when they fit the conversation — turn on only what suits your business.</div>
-        </div>
-        <div class="field">
-          <label>Tone</label>
-          <div class="segmented" id="toneSeg" role="group" aria-label="Tone"></div>
         </div>
         <div class="field">
           <label>When an estimate has multiple options, how should the assistant handle them?</label>
@@ -643,21 +638,19 @@ function money(n){return "$"+n.toLocaleString()}
 const R=(field,op,value)=>({field,op,value});
 /* Topics the assistant may proactively raise (each opt-in, like the old financing toggle) */
 const TOPICS=[
- {id:"financing",label:"Financing options",desc:"When price is the holdup, mention monthly-payment options and share your financing link.",def:true},
- {id:"discount",label:"Room to move on price",desc:"When price is the sticking point, the assistant can say there may be room to move — but never names a figure. It hands off to your team to make the actual offer.",def:false},
- {id:"priceIncrease",label:"Price increase / quote expiring",desc:"An honest nudge that equipment prices keep rising — and offer a fresh quote.",def:true},
- {id:"warranty",label:"Warranty & what's included",desc:"Reassure what the price covers and the warranty — straight from the estimate.",def:true},
+ {id:"financing",label:"Financing options",desc:"When price is the holdup, mention monthly-payment options and share your financing link.",def:false},
+ {id:"priceIncrease",label:"Price increase / quote expiring",desc:"An honest nudge that equipment prices keep rising — and offer a fresh quote.",def:false},
+ {id:"warranty",label:"Warranty & what's included",desc:"Reassure what the price covers and the warranty — straight from the estimate.",def:false},
  {id:"scheduling",label:"Scheduling urgency",desc:"When the schedule's filling up, nudge them to book before wait times get longer — the top reason customers commit in peak season.",def:false},
- {id:"seasonal",label:"Seasonal timing",desc:"\"Beat the summer rush\" — book before peak season. Great for dormant re-engagement.",def:false},
- {id:"maintenance",label:"Maintenance plan / membership",desc:"Invite customers who aren't members yet to your service plan.",def:false}
+ {id:"seasonal",label:"Seasonal timing",desc:"\"Beat the summer rush\" — book before peak season. Great for dormant re-engagement.",def:false}
 ];
 const TONES=[["friendly","Friendly & casual"],["professional","Warm & professional"],["direct","Short & to the point"]];
 function defaultTopics(){return Object.fromEntries(TOPICS.map(t=>[t.id,t.def]))}
 /* Merged model: each campaign owns its audience (filters) directly — no separate Segments object. */
 let campaigns=[
- {id:1,name:"Residential rehash",filters:{mode:"all",include:[R("status","is","Open"),R("created","more than","30"),R("cust","is","Residential")],exclude:[R("tag","is","no-AI")]},status:"active",rhythm:"5 texts over 8 days · weekly ×4 · monthly ×3",pushTexts:5,pushDays:8,autoTune:true,topics:{financing:true,priceIncrease:true,warranty:true,scheduling:true,seasonal:false,maintenance:false},tone:"professional",rules:["If it's been over 45 days, offer to send someone back out to re-check the job before re-quoting.","Mention our heat-load calculation — proper sizing is why we're worth it."],optionPref:"ask",followWeekly:true,followMonthly:true,stats:{cad:24,rep:17,hand:8}},
- {id:2,name:"Commercial follow-up",filters:{mode:"all",include:[R("status","is","Open"),R("created","more than","14"),R("cust","is","Commercial")],exclude:[R("tag","is","no-AI")]},status:"paused",rhythm:"3 texts over 7 days · weekly ×4",pushTexts:3,pushDays:7,topics:{financing:false,priceIncrease:true,warranty:true,scheduling:true,seasonal:false,maintenance:false},tone:"professional",rules:[],optionPref:"ask",followWeekly:true,followMonthly:false,stats:{cad:6,rep:4,hand:2}},
- {id:3,name:"Dormant winter revival",filters:{mode:"all",include:[R("status","is","Open"),R("created","more than","180")],exclude:[R("tag","is","no-AI")]},status:"draft",rhythm:"3 texts over 14 days · weekly ×4 · monthly ×3",pushTexts:3,pushDays:14,topics:{financing:true,priceIncrease:true,warranty:false,scheduling:true,seasonal:true,maintenance:false},tone:"professional",rules:[],optionPref:"ask",followWeekly:true,followMonthly:true,stats:{cad:0,rep:0,hand:0},blocked:"Dormant contacts need a consent record, a purchase in the last 18 months, or a Do-Not-Call check. 41 of 63 qualify so far."}
+ {id:1,name:"Residential rehash",filters:{mode:"all",include:[R("status","is","Open"),R("created","more than","30"),R("cust","is","Residential")],exclude:[R("tag","is","no-AI")]},status:"active",rhythm:"5 texts over 8 days · weekly ×4 · monthly ×3",pushTexts:5,pushDays:8,autoTune:true,audienceMode:"dynamic",topics:{financing:true,priceIncrease:true,warranty:true,scheduling:true,seasonal:false,maintenance:false},tone:"professional",rules:["If it's been over 45 days, offer to send someone back out to re-check the job before re-quoting.","Mention our heat-load calculation — proper sizing is why we're worth it."],optionPref:"ask",followWeekly:true,followMonthly:true,stats:{cad:24,rep:17,hand:8}},
+ {id:2,name:"Commercial follow-up",filters:{mode:"all",include:[R("status","is","Open"),R("created","more than","14"),R("cust","is","Commercial")],exclude:[R("tag","is","no-AI")]},status:"paused",rhythm:"3 texts over 7 days · weekly ×4",pushTexts:3,pushDays:7,audienceMode:"dynamic",topics:{financing:false,priceIncrease:true,warranty:true,scheduling:true,seasonal:false,maintenance:false},tone:"professional",rules:[],optionPref:"ask",followWeekly:true,followMonthly:false,stats:{cad:6,rep:4,hand:2}},
+ {id:3,name:"Dormant winter revival",filters:{mode:"all",include:[R("status","is","Open"),R("created","more than","180")],exclude:[R("tag","is","no-AI")]},status:"draft",rhythm:"3 texts over 14 days · weekly ×4 · monthly ×3",pushTexts:3,pushDays:14,audienceMode:"static",topics:{financing:true,priceIncrease:true,warranty:false,scheduling:true,seasonal:true,maintenance:false},tone:"professional",rules:[],optionPref:"ask",followWeekly:true,followMonthly:true,stats:{cad:0,rep:0,hand:0},blocked:"Dormant contacts need a consent record, a purchase in the last 18 months, or a Do-Not-Call check. 41 of 63 qualify so far."}
 ];
 let nextCampId=4;
 
@@ -764,34 +757,32 @@ const conversations={
 const STAGES={
  queued:{label:"Scheduled",badge:"badge-gray"},
  cadence:{label:"In queue",badge:"badge-blue"},
- hot:{label:"Hot Lead",badge:"badge-green"},
- interested:{label:"Interested",badge:"badge-amber"},
+ handed:{label:"Handed Off",badge:"badge-green"},
  sold:{label:"Sold",badge:"badge-green"},
  declined:{label:"Declined",badge:"badge-outline"},
  stopped:{label:"Stopped",badge:"badge-outline"}
 };
 let roster=[
- {ref:"#R-1029",name:"Judy Blalock",est:"Water Heater",val:"$2,780",campId:1,stage:"hot",replied:true,wait:"1d 3h",next:"Your team calls her — urgent: unit making noise, wants it done soon",conv:"R-1029"},
- {ref:"#R-1042",name:"Maria Gonzalez",est:"AC Replacement",val:"$12,400",campId:1,stage:"hot",replied:true,wait:"2h 15m",next:"Roberto calls after 5 PM — ready to move on financing",conv:"R-1042"},
- {ref:"#R-1038",name:"Dave Kowalski",est:"AC Replacement",val:"$9,800",campId:1,stage:"interested",replied:true,wait:"5h 40m",next:"Had a question on the system — answer it and nudge to book",conv:"R-1038"},
- {ref:"#R-1051",name:"Priya Patel",est:"Water Heater",val:"$2,350",campId:1,stage:"interested",replied:true,wait:"20m",next:"Asked if haul-away is included — quick reply, then nudge to book",conv:"R-1051"},
- {ref:"#R-1033",name:"Tom Reyes",est:"Furnace Repair",val:"$1,180",campId:1,stage:"cadence",replied:false,wait:"—",next:"Text 2 of 5 sent · next text Thu 9:00 AM",conv:"R-1033"},
- {ref:"#R-1032",name:"Angela Wu",est:"Duct Repair",val:"$3,400",campId:1,stage:"cadence",replied:false,wait:"—",next:"Text 1 of 5 sent · next text Tue 10:00 AM",conv:null},
- {ref:"#R-1036",name:"Marcus Boyd",est:"Duct Repair",val:"$5,100",campId:1,stage:"cadence",replied:false,wait:"—",next:"Text 3 of 5 sent · next text Fri 4:00 PM",conv:null},
- {ref:"#R-1055",name:"Sofia Ramos",est:"Water Heater",val:"$2,600",campId:1,stage:"queued",replied:false,wait:"—",next:"First text tomorrow 9:00 AM",conv:null},
- {ref:"#R-1056",name:"Carla Espinoza",est:"Duct Repair",val:"$4,250",campId:1,stage:"queued",replied:false,wait:"—",next:"First text Thu 9:00 AM",conv:null},
- {ref:"#R-1020",name:"Aaron Schultz",est:"AC Replacement",val:"$9,450",campId:1,stage:"sold",replied:true,wait:"—",next:"Booked with Roberto 🎉 — counted in recovered revenue",conv:null},
- {ref:"#R-1046",name:"Sam Nguyen",est:"Furnace Repair",val:"$960",campId:1,stage:"stopped",replied:true,wait:"—",next:"Said stop — never contacted again",conv:"R-1046"},
- {ref:"#R-1018",name:"Dana Whitfield",est:"Furnace Repair",val:"$1,310",campId:1,stage:"stopped",replied:false,wait:"—",next:"All 5 texts sent, no reply — resting until re-entry window",conv:null},
- {ref:"#R-1044",name:"Frank O'Neal",est:"Furnace Repair",val:"$840",campId:1,stage:"declined",declineReason:"2 · went with another company",replied:true,wait:"—",next:'Declined — "2 · went with another company." No more messages.',conv:"R-1044"},
- {ref:"#R-1047",name:"Bill Hartman",est:"Furnace Repair",val:"$1,420",campId:1,stage:"declined",declineReason:"1 · price",replied:true,wait:"—",next:'Declined — "1 · price." No more messages.',conv:"R-1047"},
- {ref:"#R-1040",name:"Greenline Offices LLC",est:"AC Replacement",val:"$28,400",campId:2,stage:"cadence",replied:false,wait:"—",next:"Campaign stopped — frozen at text 2 of 3 until you resume",conv:null},
- {ref:"#R-1041",name:"Taco Bueno #114",est:"Duct Repair",val:"$7,300",campId:2,stage:"cadence",replied:false,wait:"—",next:"Campaign stopped — frozen at text 1 of 3 until you resume",conv:null}
+ {ref:"#R-1029",name:"Judy Blalock",est:"Water Heater",val:"$2,780",campId:1,stage:"handed",replied:true,wait:"1d 3h",last:"Yesterday 9:05 AM",next:"Your team calls her — urgent: unit making noise, wants it done soon",conv:"R-1029"},
+ {ref:"#R-1042",name:"Maria Gonzalez",est:"AC Replacement",val:"$12,400",campId:1,stage:"handed",replied:true,wait:"2h 15m",last:"Today 9:45 AM",next:"Roberto calls after 5 PM — ready to move on financing",conv:"R-1042"},
+ {ref:"#R-1038",name:"Dave Kowalski",est:"AC Replacement",val:"$9,800",campId:1,stage:"handed",replied:true,wait:"5h 40m",last:"Today 8:20 AM",next:"Had a question on the system — answer it and nudge to book",conv:"R-1038"},
+ {ref:"#R-1051",name:"Priya Patel",est:"Water Heater",val:"$2,350",campId:1,stage:"handed",replied:true,wait:"20m",last:"Today 11:40 AM",next:"Asked if haul-away is included — quick reply, then nudge to book",conv:"R-1051"},
+ {ref:"#R-1033",name:"Tom Reyes",est:"Furnace Repair",val:"$1,180",campId:1,stage:"cadence",replied:false,wait:"—",last:"Jul 16 9:02 AM",next:"Text 2 of 5 sent · next text Thu 9:00 AM",conv:"R-1033"},
+ {ref:"#R-1032",name:"Angela Wu",est:"Duct Repair",val:"$3,400",campId:1,stage:"cadence",replied:false,wait:"—",last:"Jul 18 10:04 AM",next:"Text 1 of 5 sent · next text Tue 10:00 AM",conv:null},
+ {ref:"#R-1036",name:"Marcus Boyd",est:"Duct Repair",val:"$5,100",campId:1,stage:"cadence",replied:false,wait:"—",last:"Jul 15 4:03 PM",next:"Text 3 of 5 sent · next text Fri 4:00 PM",conv:null},
+ {ref:"#R-1055",name:"Sofia Ramos",est:"Water Heater",val:"$2,600",campId:1,stage:"queued",replied:false,wait:"—",last:"—",next:"First text tomorrow 9:00 AM",conv:null},
+ {ref:"#R-1056",name:"Carla Espinoza",est:"Duct Repair",val:"$4,250",campId:1,stage:"queued",replied:false,wait:"—",last:"—",next:"First text Thu 9:00 AM",conv:null},
+ {ref:"#R-1020",name:"Aaron Schultz",est:"AC Replacement",val:"$9,450",campId:1,stage:"sold",replied:true,wait:"—",last:"Jul 17 2:15 PM",next:"Booked with Roberto 🎉 — counted in recovered revenue",conv:null},
+ {ref:"#R-1046",name:"Sam Nguyen",est:"Furnace Repair",val:"$960",campId:1,stage:"stopped",replied:true,wait:"—",last:"Jul 16 6:40 PM",next:"Said stop — never contacted again",conv:"R-1046"},
+ {ref:"#R-1018",name:"Dana Whitfield",est:"Furnace Repair",val:"$1,310",campId:1,stage:"stopped",replied:false,wait:"—",last:"Jul 15 4:00 PM",next:"All 5 texts sent, no reply — resting until re-entry window",conv:null},
+ {ref:"#R-1044",name:"Frank O'Neal",est:"Furnace Repair",val:"$840",campId:1,stage:"declined",declineReason:"2 · went with another company",replied:true,wait:"—",last:"Jul 17 11:20 AM",next:'Declined — "2 · went with another company." No more messages.',conv:"R-1044"},
+ {ref:"#R-1047",name:"Bill Hartman",est:"Furnace Repair",val:"$1,420",campId:1,stage:"declined",declineReason:"1 · price",replied:true,wait:"—",last:"Jul 16 3:30 PM",next:'Declined — "1 · price." No more messages.',conv:"R-1047"},
+ {ref:"#R-1040",name:"Greenline Offices LLC",est:"AC Replacement",val:"$28,400",campId:2,stage:"cadence",replied:false,wait:"—",last:"Jul 12 10:01 AM",next:"Campaign stopped — frozen at text 2 of 3 until you resume",conv:null},
+ {ref:"#R-1041",name:"Taco Bueno #114",est:"Duct Repair",val:"$7,300",campId:2,stage:"cadence",replied:false,wait:"—",last:"Jul 11 9:00 AM",next:"Campaign stopped — frozen at text 1 of 3 until you resume",conv:null}
 ];
 function rosterOutcome(r){
   if(!r.replied)return ["No answer","badge-gray"];
-  if(r.stage==="hot"||r.stage==="sold")return ["Completed","badge-green"];
-  if(r.stage==="interested")return ["In progress","badge-blue"];
+  if(r.stage==="handed"||r.stage==="sold")return ["Completed","badge-green"];
   return ["Stopped","badge-outline"];
 }
 
@@ -839,7 +830,7 @@ const leadConvs=[
 ];
 
 /* ================= Global state ================= */
-let iaOption="one", curPage="rehash", curTab="overview";
+let iaOption="three", curPage="rehash", curTab="overview";
 let oppTab="attention", oppStatusTab="attention", oppView="table", convView="table", rlTab="attention", rlCampFilter="all", convTab="all", convCampFilter="all";
 let convFilters={
  intents:{service_request:true,customer_support:true,spam:true,other:true,pending:true,rehash:true},
@@ -1012,7 +1003,7 @@ function renderCampaigns(){
     const arch=c.status==="archived";
     return `<tr class="rowbtn" ${arch?'style="opacity:.55"':""} onclick="openCampDrawer(${c.id})">
       <td class="t-name">${c.name}${c.blocked?' <span title="'+c.blocked+'">🔒</span>':""}</td>
-      <td><span class="chip" style="margin:1px 2px 1px 0">${matchRows(c.filters).length} now</span><div class="t-muted" style="font-size:12px;margin-top:4px;line-height:1.45">${summarize(c.filters)}</div></td>
+      <td><span class="chip" style="margin:1px 2px 1px 0">${matchRows(c.filters).length} now</span> <span class="badge ${c.audienceMode==="static"?"badge-gray":"badge-blue"}" style="font-size:10.5px">${c.audienceMode==="static"?"Static":"Dynamic"}</span><div class="t-muted" style="font-size:12px;margin-top:4px;line-height:1.45">${summarize(c.filters)}</div></td>
       <td class="t-muted">${c.rhythm}</td>
       <td>${statusBadge(c)}</td>
       <td class="t-num">${c.status==="draft"?"—":`<span style="color:var(--brand);font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:2px" title="See who's being rehashed" onclick="event.stopPropagation();showClientsFor(${c.id})">${c.stats.cad}</span>`}</td>
@@ -1056,9 +1047,9 @@ function openCampDrawer(id){
   document.getElementById("cdBadges").innerHTML=statusBadge(c);
   document.getElementById("cdBody").innerHTML=`
    <div class="dsec"><h4>Audience</h4>
-     <div style="margin-bottom:8px"><span class="chip">${matchRows(c.filters).length} match now</span></div>
+     <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px"><span class="chip">${matchRows(c.filters).length} match now</span><span class="badge ${c.audienceMode==="static"?"badge-gray":"badge-blue"}">${c.audienceMode==="static"?"Static":"Dynamic"}</span></div>
      <div class="sumbox" style="margin-bottom:8px">${summarize(c.filters)}</div>
-     <p class="hint">Built into the campaign — no separate segment to keep in sync. Estimates leave the moment they stop matching (e.g. when marked sold).</p>
+     <p class="hint">${c.audienceMode==="static"?"Locked to the estimates that matched at launch — new estimates never join. Anyone marked sold or opted out still drops out.":"Keeps itself up to date — new matching estimates join automatically, and estimates leave the moment they stop matching (e.g. when marked sold)."}</p>
      <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="closeAllDrawers();showClientsFor(${c.id})">See who's being rehashed →</button></div>
    <div class="dsec"><h4>Follow-up rhythm</h4>
      <dl class="dl"><dt>First push</dt><dd>${c.pushTexts||5} texts over ${c.pushDays||8} days — front-loaded, business hours only</dd><dt>Then</dt><dd>${[c.followWeekly!==false?"every week for 4 weeks":null,c.followMonthly!==false?"every month for 3 months":null].filter(Boolean).join(", then ")||"stops after the first push"} — until they reply or say "stop"</dd>${c.autoTune?`<dt>Rhythm updates</dt><dd>Follows the recommendation as it improves — you'll be notified when it changes</dd>`:""}</dl></div>
@@ -1220,13 +1211,13 @@ function renderOppsPage(){
       ref:r.ref,name:r.name,phone:(estimates.find(e=>e.name===r.name)||{}).phone||"—",
       job:r.est,stage:r.stage,src:"Rehash SMS",value:r.val,wait:r.wait,rehash:true,
       summary:(r.conv&&conversations[r.conv]?conversations[r.conv].summary:r.next)}));
-    const attnRows=captured.filter(s=>SR_ATTN(s.status)).concat(rehashAll.filter(o=>o.stage==="hot"||o.stage==="interested"));
+    const attnRows=captured.filter(s=>SR_ATTN(s.status)).concat(rehashAll.filter(o=>o.stage==="handed"));
     const srcTabs=[["attention","Needs attention",attnRows.length],["lead","Captured Leads",captured.length],["rehash","Rehashed Leads",rehashAll.length]];
     const SR_SUB=[["attention","Needs attention"],["scheduled","Scheduled"],["completed","Completed"],["canceled","Canceled"]];
-    const stageIs=(o,k)=>k==="attention"?(o.stage==="hot"||o.stage==="interested"):k==="cadence"?(o.stage==="cadence"||o.stage==="queued"):o.stage===k;
+    const stageIs=(o,k)=>k==="attention"?(o.stage==="handed"):k==="cadence"?(o.stage==="cadence"||o.stage==="queued"):o.stage===k;
     let rows,subHtml="",banner="";
     if(three){
-      const capAttn=captured.filter(s=>SR_ATTN(s.status)), rehAttn=rehashAll.filter(o=>o.stage==="hot"||o.stage==="interested");
+      const capAttn=captured.filter(s=>SR_ATTN(s.status)), rehAttn=rehashAll.filter(o=>o.stage==="handed");
       rows=oppTab==="lead"?capAttn:oppTab==="rehash"?rehAttn:attnRows;
       banner="";
     }else if(oppTab==="lead"){
@@ -1273,14 +1264,14 @@ function renderOppsPage(){
       if(oppTab==="lead"){
         kanbanHtml=srKanban();kanCount=srRows.length;
       }else{
-        const REHASH_KAN_COLS=[["hot","Hot Lead","badge-green"],["interested","Interested","badge-amber"],["sold","Sold","badge-green"],["declined","Declined","badge-outline"],["stopped","Stopped","badge-outline"]];
-        const cards=roster.filter(r=>["hot","interested","sold","declined","stopped"].includes(r.stage)).map(r=>({ref:r.ref,col:r.stage,click:`openLeadDrawer('${r.name.replace(/'/g,"\\'")}')`,body:kanCardBody({name:r.name,job:r.est,value:r.val,summary:(r.conv&&conversations[r.conv]?conversations[r.conv].summary:r.next),src:"Rehash SMS"})}));
+        const REHASH_KAN_COLS=[["handed","Handed Off","badge-green"],["sold","Sold","badge-green"],["declined","Declined","badge-outline"],["stopped","Stopped","badge-outline"]];
+        const cards=roster.filter(r=>["handed","sold","declined","stopped"].includes(r.stage)).map(r=>({ref:r.ref,col:r.stage,click:`openLeadDrawer('${r.name.replace(/'/g,"\\'")}')`,body:kanCardBody({name:r.name,job:r.est,value:r.val,summary:(r.conv&&conversations[r.conv]?conversations[r.conv].summary:r.next),src:"Rehash SMS"})}));
         kanbanHtml=kanBoard(REHASH_KAN_COLS,cards,"rehash");kanCount=cards.length;
       }
     }
     root.innerHTML=`
      <div class="page-h"><div><h1>${three?"Needs attention":"Opportunities"}</h1><p>${three?"Everything that needs a human right now — across every agent. Warm rehashed leads to call, plus captured leads that need a booking or more info.":"Every chance to win a job, from every agent. <b>Needs attention</b> is what to work now — the rest is the assistant running."}</p></div></div>
-     <nav class="utabs" role="tablist">${(three?[["attention","All",attnRows.length],["lead","Captured Leads",captured.filter(s=>SR_ATTN(s.status)).length],["rehash","Rehashed Leads",rehashAll.filter(o=>o.stage==="hot"||o.stage==="interested").length]]:srcTabs).map(([k,l,n])=>`<button class="utab ${(k==="attention"&&!three)?"attn ":""}${oppTab===k?"active":""}" role="tab" onclick="setOppSource('${k}')">${l}<span class="cnt">${n}</span></button>`).join("")}</nav>
+     <nav class="utabs" role="tablist">${(three?[["attention","All",attnRows.length],["lead","Captured Leads",captured.filter(s=>SR_ATTN(s.status)).length],["rehash","Rehashed Leads",rehashAll.filter(o=>o.stage==="handed").length]]:srcTabs).map(([k,l,n])=>`<button class="utab ${(k==="attention"&&!three)?"attn ":""}${oppTab===k?"active":""}" role="tab" onclick="setOppSource('${k}')">${l}<span class="cnt">${n}</span></button>`).join("")}</nav>
      ${subHtml?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin:14px 0 0">${subHtml}</div>`:""}
      ${banner}
      <div class="toolbar">
@@ -1322,15 +1313,15 @@ function renderOppsPage(){
 
 /* ================= Page: Rehashed Leads (B) ================= */
 const RL_TABS=[["attention","Needs attention"],["cadence","In queue"],["declined","Declined"],["sold","Sold"],["stopped","Stopped"]];
-/* "Needs attention" = Hot Lead + Interested. "Active" = any real conversation (C). "In queue" = assistant still texting. */
-function rlStageMatch(r,tab){if(tab==="attention")return r.stage==="hot"||r.stage==="interested";if(tab==="active")return ["hot","interested","sold","stopped","declined"].includes(r.stage);if(tab==="cadence")return r.stage==="cadence"||r.stage==="queued";return r.stage===tab}
+/* "Needs attention" = Handed Off. "Active" = any real conversation (C). "In queue" = assistant still texting. */
+function rlStageMatch(r,tab){if(tab==="attention")return r.stage==="handed";if(tab==="active")return ["handed","sold","stopped","declined"].includes(r.stage);if(tab==="cadence")return r.stage==="cadence"||r.stage==="queued";return r.stage===tab}
 let rlView="table";
 function setRlView(v){rlView=v;renderRLPage();}
 function renderRLPage(){
   const root=document.getElementById("rlRoot");
   const three=iaOption==="three";
   /* Option C: two tabs — Active Conversations (real threads, kanban-able) and In queue (assistant still texting). */
-  const TABS=three?[["active","Active Conversations"],["cadence","In queue"]]:RL_TABS;
+  const TABS=three?[["active","Active Opportunities"],["cadence","In queue"]]:RL_TABS;
   if(three&&!TABS.some(([k])=>k===rlTab))rlTab="active";
   const counts=Object.fromEntries(TABS.map(([k])=>[k,roster.filter(r=>rlStageMatch(r,k)&&(rlCampFilter==="all"||r.campId===rlCampFilter)).length]));
   const campChips=[`<button class="btn btn-sm ${rlCampFilter==="all"?"btn-primary":"btn-outline"}" onclick="rlCampFilter='all';renderRLPage()">All campaigns</button>`]
@@ -1341,12 +1332,12 @@ function renderRLPage(){
   const showToggle=three&&rlTab==="active";
   let kanbanHtml="";
   if(showToggle&&rlView==="kanban"){
-    const COLS=[["interested","Interested","badge-amber"],["hot","Hot Lead","badge-green"],["sold","Sold","badge-green"],["stopped","Stopped","badge-outline"],["declined","Declined","badge-outline"]];
+    const COLS=[["handed","Handed Off","badge-green"],["sold","Sold","badge-green"],["stopped","Stopped","badge-outline"],["declined","Declined","badge-outline"]];
     const cards=rows.map(r=>({ref:r.ref,col:r.stage,click:`openLeadDrawer('${r.name.replace(/'/g,"\\'")}')`,body:kanCardBody({name:r.name,job:r.est,value:r.val,summary:(r.conv&&conversations[r.conv]?conversations[r.conv].summary:r.next),src:"Rehash SMS"})}));
     kanbanHtml=kanBoard(COLS,cards,"rehash");
   }
   root.innerHTML=`
-   <div class="page-h"><div><h1>${three?"Conversations":"Rehashed Leads"}</h1><p>${three?"Every rehash conversation the assistant has had. <b>In queue</b> leads are still being texted — they move here the moment they reply.":"Only <b>Needs attention</b> needs you. Everything else is the assistant working — shown for visibility."}</p></div></div>
+   <div class="page-h"><div><h1>${three?"Opportunities":"Rehashed Leads"}</h1><p>${three?"Every estimate the assistant is rehashing. <b>In queue</b> leads are still being texted — they become active opportunities the moment they reply.":"Only <b>Needs attention</b> needs you. Everything else is the assistant working — shown for visibility."}</p></div></div>
    <nav class="utabs" role="tablist">${TABS.map(([k,l])=>`<button class="utab ${k==="attention"?"attn ":""}${rlTab===k?"active":""}" role="tab" onclick="rlTab='${k}';renderRLPage()">${l}<span class="cnt">${counts[k]}</span></button>`).join("")}</nav>
    ${banner}
    <div class="toolbar">
@@ -1356,9 +1347,10 @@ function renderRLPage(){
      <div style="display:flex;gap:6px;flex-wrap:wrap">${campChips}</div>
    </div>
    ${(showToggle&&rlView==="kanban")?kanbanHtml+`<div class="pagefoot">${rows.length} across the pipeline · drag a card to change its status</div>`:`<div class="tablewrap"><table>
-    <thead><tr><th style="width:86px">Ref</th><th style="width:150px">Contact</th><th style="width:130px">Phone</th><th>Estimate</th><th style="width:90px">Value</th><th style="width:170px">Campaign</th><th>What's next</th></tr></thead>
+    <thead><tr><th style="width:86px">Ref</th><th style="width:150px">Contact</th><th style="width:130px">Phone</th><th>Estimate</th><th style="width:90px">Value</th><th style="width:170px">Campaign</th><th>What's next</th><th style="width:150px">Last activity</th><th style="width:120px">Status</th></tr></thead>
     <tbody>${rows.map(r=>{
       const camp=campaigns.find(c=>c.id===r.campId);
+      const st=STAGES[r.stage]||{label:r.stage,badge:"badge-gray"};
       return `<tr class="rowbtn" onclick="openLeadDrawer('${r.name.replace(/'/g,"\\'")}')">
         <td class="t-num t-muted">${r.ref}</td>
         <td class="t-name">${r.name}</td>
@@ -1367,7 +1359,9 @@ function renderRLPage(){
         <td class="t-num">${r.val}</td>
         <td class="t-muted">${camp?camp.name:"—"}</td>
         <td class="t-muted">${r.next}</td>
-      </tr>`}).join("")||'<tr><td colspan="7"><div class="empty">Nobody in this stage right now.</div></td></tr>'}</tbody></table></div>
+        <td class="t-num t-muted">${r.last||"—"}</td>
+        <td><span class="badge ${st.badge}">${st.label}</span></td>
+      </tr>`}).join("")||'<tr><td colspan="9"><div class="empty">Nobody in this stage right now.</div></td></tr>'}</tbody></table></div>
    <div class="pagefoot">Showing ${rows.length} · click a lead for details and the thread. Threads with replies also appear in Conversations.</div>`}`;
 }
 
@@ -1379,7 +1373,7 @@ function convRowsData(){
   const rehash=roster.filter(r=>r.stage!=="queued").map(r=>{
     const e=estimates.find(x=>x.name===r.name);
     return {ref:r.ref,name:r.name,channel:"SMS",intent:"rehash",campId:r.campId,
-      outcome:(r.stage==="hot"||r.stage==="sold")?"completed":r.stage==="interested"?"in_progress":((r.stage==="cadence"||r.stage==="queued")&&r.replied)?"in_progress":((r.stage==="cadence"||r.stage==="queued")?"no_answer":"stopped"),
+      outcome:(r.stage==="handed"||r.stage==="sold")?"completed":((r.stage==="cadence"||r.stage==="queued")&&r.replied)?"in_progress":((r.stage==="cadence"||r.stage==="queued")?"no_answer":"stopped"),
       created:e?Math.max(1,e.age-3)+"d ago":"—",
       last:r.wait!=="—"?r.wait+" ago":"—",
       rehash:true};
@@ -1496,9 +1490,6 @@ function renderTopics(){
      <div><div class="topic-t">${t.label}</div><div class="topic-d">${t.desc}</div></div>
    </div>`).join("");
 }
-function renderTone(){
-  document.getElementById("toneSeg").innerHTML=TONES.map(([k,l])=>`<button class="${wizTone===k?"on":""}" onclick="wizTone='${k}';renderTone()">${l}</button>`).join("");
-}
 const wNextLabels=["Next: follow-up rhythm","Next: assistant behavior","Launch campaign"];
 function openWizard(campId){
   editingCampId=campId;wstep=1;
@@ -1509,7 +1500,7 @@ function openWizard(campId){
   wizTopics=c&&c.topics?{...c.topics}:defaultTopics();
   wizTone=c?c.tone:"professional";
   wizRules=c&&c.rules?[...c.rules]:[];
-  renderTopics();renderTone();renderCampRules();renderRuleUI();
+  renderTopics();renderCampRules();renderRuleUI();
   const push=c?{texts:c.pushTexts||5,days:c.pushDays||8}:PUSH_PRESETS.standard;
   let presetKey="custom";
   for(const k in PUSH_PRESETS)if(PUSH_PRESETS[k].texts===push.texts&&PUSH_PRESETS[k].days===push.days)presetKey=k;
@@ -1519,6 +1510,8 @@ function openWizard(campId){
   document.getElementById("cDays").value=dayOpts.includes(push.days)?push.days:10;
   document.getElementById("customRhythm").style.display=(presetKey==="custom")?"flex":"none";
   document.getElementById("autoTuneBox").style.display=(presetKey==="standard")?"block":"none";
+  const audMode=c?(c.audienceMode||"dynamic"):"dynamic";
+  document.querySelectorAll('input[name=audMode]').forEach(r=>{r.checked=(r.value===audMode);r.closest(".radio-card").classList.toggle("sel",r.checked)});
   document.getElementById("optionPref").value=c?c.optionPref||"first":"ask";
   document.getElementById("wkndSwitch").classList.toggle("on",c?c.weekends!==false:true);
   document.getElementById("tailSelect").value=c?(c.followWeekly===false?"none":c.followMonthly===false?"weekly":"full"):"full";
@@ -1610,6 +1603,7 @@ function wizNext(){
   const name=document.getElementById("campName").value.trim()||"Untitled campaign";
   const fp=cadenceFirstPush();
   const data={name,filters:JSON.parse(JSON.stringify(tempSeg)),rhythm:rhythmLabel(),
+    audienceMode:(document.querySelector('input[name=audMode]:checked')||{}).value||"dynamic",
     topics:{...wizTopics},tone:wizTone,rules:wizRules.map(r=>r.trim()).filter(Boolean),
     optionPref:document.getElementById("optionPref").value,weekends:document.getElementById("wkndSwitch").classList.contains("on"),
     pushTexts:fp.texts,pushDays:fp.days,
@@ -1667,16 +1661,16 @@ function renderNav(){
   let h;
   if(three){
     const leadOpen=navExpand.leadSettings;
-    /* Section colors mirror the source badges: teal = Lead Capture, purple = Estimates Rehashing. Neutral sections stay gray. */
+    /* Sections stay neutral — no per-section color coding. */
     const sec=(title,vars,inner)=>`<div class="nav-sec" style="${vars}"><div class="nav-group">${title}</div>${inner}</div>`;
-    const LEAD="--sec:#08979C;--sec-fg:#08979C;--sec-tint:#E6FFFB", REHASH="--sec:#722ED1;--sec-fg:#531DAB;--sec-tint:#F9F0FF", NEUTRAL="";
+    const LEAD="", REHASH="", NEUTRAL="";
     h=sec("General",NEUTRAL,
         item("Dashboard","dashboard")+item("Needs attention","attention","opps",{onclick:"navGo('opps','attention')"}))
      +sec("Lead Capture",LEAD,
         item("Conversations","conv","conv")+toggle("leadSettings",leadOpen)
         +(leadOpen?item("Voice Agent","voice",null,{sub:true})+item("Chatbot","chatbot",null,{sub:true})+item("Booking Form","booking",null,{sub:true}):""))
      +sec("Estimates Rehashing",REHASH,
-        item("Conversations","conv","rl")+item("Campaigns","rehash","rehash",{badge:'<span class="nav-new">NEW</span>'}))
+        item("Opportunities","opps","rl")+item("Campaigns","rehash","rehash",{badge:'<span class="nav-new">NEW</span>'}))
      +sec("Company",NEUTRAL,
         item("Settings","settings")+item("Team","team")+item("Job Types","jobtypes"));
   }else{
@@ -1693,11 +1687,11 @@ function showPage(p){
   curPage=p;
   ["rehash","opps","rl","conv"].forEach(x=>document.getElementById("page-"+x).hidden=(x!==p));
   const three=iaOption==="three";
-  const secCrumb=(name,color)=>`<span style="color:${color};font-weight:600">${name}</span>`;
+  const secCrumb=(name,color)=>`<span style="color:var(--text-3);font-weight:600">${name}</span>`;
   document.getElementById("crumb").innerHTML=
     p==="rehash"?(three?secCrumb("Estimates Rehashing","#531DAB")+' / <b>Campaigns</b>':'Agents &amp; Tools / <b>Estimate Rehashing</b>')
     :p==="opps"?`<b>${three?"Needs attention":iaOption==="one"?"Opportunities":"Service Requests"}</b>`
-    :p==="rl"?(three?secCrumb("Estimates Rehashing","#531DAB")+' / <b>Conversations</b>':'<b>Rehashed Leads</b>')
+    :p==="rl"?(three?secCrumb("Estimates Rehashing","#531DAB")+' / <b>Opportunities</b>':'<b>Rehashed Leads</b>')
     :(three?secCrumb("Lead Capture","#08979C")+' / <b>Conversations</b>':'<b>Conversations</b>');
   if(p==="opps")renderOppsPage();
   if(p==="rl")renderRLPage();
@@ -1731,5 +1725,5 @@ document.addEventListener("change",e=>{
 document.addEventListener("click",()=>{const p=document.getElementById("convPop");if(p)p.classList.remove("open")});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeAllDrawers();closePauseModal();closeExc()}});
 
-renderCampaigns();setIA("one");
+renderCampaigns();setIA("three");
 </script>
