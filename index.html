@@ -444,7 +444,8 @@
       <div id="wstep2" hidden>
         <div class="field">
           <label>How often should the assistant text?</label>
-          <label class="radio-card sel"><input type="radio" name="cad" value="standard" checked><span><b>Standard — 5 texts over 8 days <span class="reco-pill">Recommended</span></b><span>Two quick touches, then every other day. Best reply rates.</span></span></label>
+          <label class="radio-card sel"><input type="radio" name="cad" value="standard" checked><span><b>Standard — 5 texts over 14 days <span class="reco-pill">Recommended</span></b><span>A re-engagement burst that stays spaced out — the sweet spot for estimates that have gone quiet.</span></span></label>
+          <label class="radio-card"><input type="radio" name="cad" value="fast"><span><b>Faster — 5 texts over 8 days</b><span>Same five touches, compressed. Better for fresher estimates than for long-cold ones.</span></span></label>
           <label class="radio-card"><input type="radio" name="cad" value="gentle"><span><b>Gentle — 3 texts over 7 days</b><span>A lighter touch for customers you don't want to nudge hard.</span></span></label>
           <label class="radio-card"><input type="radio" name="cad" value="custom"><span><b>Custom — set your own pace</b>
             <span class="customrhythm" id="customRhythm" style="display:none">
@@ -467,7 +468,7 @@
             </div>
             <div class="switchrow" style="padding:0 0 7px"><button class="switch on" id="wkndSwitch" onclick="this.classList.toggle('on');renderCadence()" role="switch" aria-checked="true" aria-label="Send texts on weekends"></button>Send texts on weekends</div>
           </div>
-          <div class="hint" style="margin-top:6px">Days count from when each estimate joins the campaign — not calendar dates. Texting stops the moment they reply.</div>
+          <div class="hint" style="margin-top:6px"><b>Day 1 is the day each estimate is imported into Breezy</b> — not the day the estimate was written. Days count from there, not from calendar dates.</div>
         </div>
         <div class="field" style="margin-top:22px">
           <label>When does the follow-up stop for a customer?</label>
@@ -648,7 +649,7 @@ const TONES=[["friendly","Friendly & casual"],["professional","Warm & profession
 function defaultTopics(){return Object.fromEntries(TOPICS.map(t=>[t.id,t.def]))}
 /* Merged model: each campaign owns its audience (filters) directly — no separate Segments object. */
 let campaigns=[
- {id:1,name:"Residential rehash",filters:{mode:"all",include:[R("status","is","Open"),R("created","more than","30"),R("cust","is","Residential")],exclude:[R("tag","is","no-AI")]},status:"active",rhythm:"5 texts over 8 days · weekly ×4 · monthly ×3",pushTexts:5,pushDays:8,autoTune:true,audienceMode:"dynamic",topics:{financing:true,priceIncrease:true,warranty:true,scheduling:true,seasonal:false,maintenance:false},tone:"professional",rules:["If it's been over 45 days, offer to send someone back out to re-check the job before re-quoting.","Mention our heat-load calculation — proper sizing is why we're worth it."],optionPref:"ask",followWeekly:true,followMonthly:true,stats:{cad:24,rep:17,hand:8}},
+ {id:1,name:"Residential rehash",filters:{mode:"all",include:[R("status","is","Open"),R("created","more than","30"),R("cust","is","Residential")],exclude:[R("tag","is","no-AI")]},status:"active",rhythm:"5 texts over 14 days · weekly ×4 · monthly ×3",pushTexts:5,pushDays:14,autoTune:true,audienceMode:"dynamic",topics:{financing:true,priceIncrease:true,warranty:true,scheduling:true,seasonal:false,maintenance:false},tone:"professional",rules:["If it's been over 45 days, offer to send someone back out to re-check the job before re-quoting.","Mention our heat-load calculation — proper sizing is why we're worth it."],optionPref:"ask",followWeekly:true,followMonthly:true,stats:{cad:24,rep:17,hand:8}},
  {id:2,name:"Commercial follow-up",filters:{mode:"all",include:[R("status","is","Open"),R("created","more than","14"),R("cust","is","Commercial")],exclude:[R("tag","is","no-AI")]},status:"paused",rhythm:"3 texts over 7 days · weekly ×4",pushTexts:3,pushDays:7,audienceMode:"dynamic",topics:{financing:false,priceIncrease:true,warranty:true,scheduling:true,seasonal:false,maintenance:false},tone:"professional",rules:[],optionPref:"ask",followWeekly:true,followMonthly:false,stats:{cad:6,rep:4,hand:2}},
  {id:3,name:"Dormant winter revival",filters:{mode:"all",include:[R("status","is","Open"),R("created","more than","180")],exclude:[R("tag","is","no-AI")]},status:"draft",rhythm:"3 texts over 14 days · weekly ×4 · monthly ×3",pushTexts:3,pushDays:14,audienceMode:"static",topics:{financing:true,priceIncrease:true,warranty:false,scheduling:true,seasonal:true,maintenance:false},tone:"professional",rules:[],optionPref:"ask",followWeekly:true,followMonthly:true,stats:{cad:0,rep:0,hand:0},blocked:"Dormant contacts need a consent record, a purchase in the last 18 months, or a Do-Not-Call check. 41 of 63 qualify so far."}
 ];
@@ -1501,7 +1502,7 @@ function openWizard(campId){
   wizTone=c?c.tone:"professional";
   wizRules=c&&c.rules?[...c.rules]:[];
   renderTopics();renderCampRules();renderRuleUI();
-  const push=c?{texts:c.pushTexts||5,days:c.pushDays||8}:PUSH_PRESETS.standard;
+  const push=c?{texts:c.pushTexts||5,days:c.pushDays||14}:PUSH_PRESETS.standard;
   let presetKey="custom";
   for(const k in PUSH_PRESETS)if(PUSH_PRESETS[k].texts===push.texts&&PUSH_PRESETS[k].days===push.days)presetKey=k;
   document.querySelectorAll('input[name=cad]').forEach(r=>{r.checked=(r.value===presetKey);r.closest(".radio-card").classList.toggle("sel",r.checked)});
@@ -1519,19 +1520,19 @@ function openWizard(campId){
   openDrawerEl("wizDrawer");
 }
 /* First push = N texts front-loaded across D days. Presets state both numbers; custom sets both. */
-const PUSH_PRESETS={standard:{texts:5,days:8},gentle:{texts:3,days:7}};
+const PUSH_PRESETS={standard:{texts:5,days:14},fast:{texts:5,days:8},gentle:{texts:3,days:7}};
 function cadenceFirstPush(){
   const v=(document.querySelector('input[name=cad]:checked')||{}).value||"standard";
   if(v==="custom")return {texts:+document.getElementById("cTouches").value,days:+document.getElementById("cDays").value};
   return PUSH_PRESETS[v]||PUSH_PRESETS.standard;
 }
-/* Front-loaded distribution: day 1, a quick day-2 touch, then spread the rest evenly out to day D. */
+/* Front-loaded distribution: day 1, a day-3 touch, then spread the rest evenly out to day D. */
 function cadenceOffsets(n,days){
   n=Math.max(1,Math.round(n));
   if(n===1)return [1];
   days=Math.max(2,Math.round(days||2*(n-1)));
   const out=[1];
-  if(n>=3&&days>=3)out.push(2);
+  if(n>=3&&days>=4)out.push(3);
   const remaining=n-out.length, start=out[out.length-1];
   for(let i=1;i<=remaining;i++)out.push(Math.round(start+(days-start)*i/remaining));
   for(let i=1;i<out.length;i++)if(out[i]<=out[i-1])out[i]=out[i-1]+1;
